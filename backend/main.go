@@ -36,6 +36,12 @@ func main() {
 	adminUsageAPI := handlers.NewAdminUsageHandler(db)
 	adminAuditAPI := handlers.NewAdminAuditHandler(db)
 	guestAPI := handlers.NewGuestHandler(db)
+	memberExpiryAPI := handlers.NewMemberExpiryHandler(db)
+
+	// Sinkronisasi status akses saat server mulai.
+	if err := memberExpiryAPI.ExpireMembers(); err != nil {
+		log.Println("Gagal initial expire member:", err)
+	}
 	deviceAPI := handlers.NewDeviceHandler(db)
 	deviceMonitor := services.NewDeviceMonitor(db)
 	technicianMonitorAPI := handlers.NewTechnicianMonitorHandler(db)
@@ -51,6 +57,10 @@ func main() {
 				log.Printf("device monitoring error: %v", err)
 			} else if len(results) > 0 {
 				log.Printf("device monitoring: checked %d device(s)", len(results))
+			}
+
+			if err := memberExpiryAPI.ExpireMembers(); err != nil {
+				log.Println("Gagal expire member:", err)
 			}
 
 			if err := guestAPI.ExpireSessions(); err != nil {

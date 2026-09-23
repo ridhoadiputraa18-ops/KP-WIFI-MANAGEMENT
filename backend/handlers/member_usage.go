@@ -87,6 +87,15 @@ func (h *MemberUsageHandler) Record(w http.ResponseWriter, r *http.Request, user
 		return
 	}
 
+	// Cegah overflow int64 saat menjumlahkan traffic.
+	if req.UploadBytes > int64(^uint64(0)>>1)-req.DownloadBytes {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"status":  "INVALID_USAGE",
+			"message": "Total traffic terlalu besar",
+		})
+		return
+	}
+
 	totalBytes := req.UploadBytes + req.DownloadBytes
 
 	result, err := h.DB.Exec(`

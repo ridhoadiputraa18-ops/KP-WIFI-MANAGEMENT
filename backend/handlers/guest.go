@@ -682,6 +682,28 @@ func (h *GuestHandler) StopSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	affected, _ := result.RowsAffected()
+	// Catat aktivitas Admin ke Audit Log.
+	if user, ok := middleware.CurrentUser(r); ok {
+		auditLogger := services.NewAuditLogger(h.DB)
+		targetID := int64(guestID)
+
+		description := fmt.Sprintf(
+			"Admin menghentikan sesi Guest ID %d (session offline: %d)",
+			guestID,
+			affected,
+		)
+
+		if err := auditLogger.Log(
+			r,
+			func() *int64 { id := int64(user.ID); return &id }(),
+			"GUEST_SESSION_STOP",
+			"GUEST",
+			&targetID,
+			description,
+		); err != nil {
+			fmt.Printf("audit guest stop error: %v\n", err)
+		}
+	}
 
 	_, _ = h.DB.Exec(`
 		UPDATE guests
