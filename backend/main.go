@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"kp-wifi-management/database"
@@ -335,10 +336,15 @@ func main() {
 
 	log.Println("======================================")
 	log.Println(" WiFi Management System")
-	log.Println(" Backend berjalan di :8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := "0.0.0.0:" + port
+	log.Println(" Backend berjalan di " + addr)
 	log.Println("======================================")
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal(err)
 	}
 }
