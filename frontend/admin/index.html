@@ -1,0 +1,2448 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WiFi Management - Admin</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f3f4f6;
+  color:#1f2937;
+}
+
+header{
+  height:68px;
+  background:#111827;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 22px;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+
+.brand{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.admin-label{
+  font-size:14px;
+  opacity:.85;
+}
+
+.menu-toggle{
+  display:none;
+  background:#374151;
+  color:white;
+  font-size:20px;
+  padding:8px 11px;
+}
+
+button{
+  border:0;
+  border-radius:7px;
+  padding:10px 15px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+button:hover{
+  opacity:.9;
+}
+
+.btn-primary{
+  background:#2563eb;
+  color:white;
+}
+
+.btn-danger{
+  background:#dc2626;
+  color:white;
+}
+
+.btn-secondary{
+  background:#e5e7eb;
+  color:#111827;
+}
+
+.layout{
+  display:flex;
+  min-height:calc(100vh - 68px);
+}
+
+.sidebar{
+  width:240px;
+  background:#1f2937;
+  color:white;
+  padding:18px 12px;
+  flex-shrink:0;
+  transition:.25s;
+}
+
+.sidebar-title{
+  font-size:12px;
+  color:#9ca3af;
+  margin:8px 12px 10px;
+  text-transform:uppercase;
+}
+
+.menu{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  text-align:left;
+  color:#d1d5db;
+  background:transparent;
+  padding:12px;
+  margin-bottom:5px;
+  font-size:14px;
+}
+
+.menu-icon{
+  width:25px;
+  text-align:center;
+  font-size:18px;
+  flex-shrink:0;
+}
+
+.menu:hover,
+.menu.active{
+  background:#374151;
+  color:white;
+}
+
+.main{
+  flex:1;
+  padding:24px;
+  max-width:1500px;
+  min-width:0;
+}
+
+.page-title{
+  margin-bottom:22px;
+}
+
+.page-title h1{
+  margin:0 0 5px;
+  font-size:25px;
+}
+
+.page-title p{
+  margin:0;
+  color:#6b7280;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.card{
+  background:white;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 2px 8px #00000012;
+}
+
+.card-label{
+  color:#6b7280;
+  font-size:14px;
+}
+
+.card-value{
+  font-size:29px;
+  font-weight:bold;
+  margin-top:9px;
+}
+
+.card-info{
+  color:#9ca3af;
+  font-size:12px;
+  margin-top:7px;
+}
+
+.section{
+  background:white;
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:22px;
+  box-shadow:0 2px 8px #00000012;
+}
+
+.section-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+
+.section-header h2{
+  margin:0;
+  font-size:19px;
+}
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+
+th,td{
+  padding:12px 10px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+th{
+  background:#f9fafb;
+  font-weight:bold;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badge-active{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.badge-offline{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.empty{
+  text-align:center;
+  color:#6b7280;
+  padding:25px;
+}
+
+.message{
+  display:none;
+  padding:12px 15px;
+  border-radius:8px;
+  margin-bottom:18px;
+}
+
+.message.success{
+  display:block;
+  background:#dcfce7;
+  color:#166534;
+}
+
+.message.error{
+  display:block;
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.mobile-overlay{
+  display:none;
+}
+
+@media(max-width:1000px){
+
+  .cards{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
+
+@media(max-width:700px){
+
+  header{
+    height:62px;
+    padding:0 12px;
+  }
+
+  .brand{
+    font-size:17px;
+  }
+
+  .admin-label{
+    display:none;
+  }
+
+  .menu-toggle{
+    display:block;
+  }
+
+  .layout{
+    min-height:calc(100vh - 62px);
+  }
+
+  .sidebar{
+    position:fixed;
+    top:62px;
+    left:-255px;
+    width:240px;
+    height:calc(100vh - 62px);
+    z-index:90;
+    overflow-y:auto;
+    box-shadow:4px 0 15px #0004;
+  }
+
+  .sidebar.open{
+    left:0;
+  }
+
+  .mobile-overlay{
+    position:fixed;
+    top:62px;
+    left:0;
+    right:0;
+    bottom:0;
+    background:#0007;
+    z-index:80;
+  }
+
+  .mobile-overlay.show{
+    display:block;
+  }
+
+  .main{
+    padding:15px;
+    width:100%;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+
+  .card{
+    padding:17px;
+  }
+
+  .page-title h1{
+    font-size:21px;
+  }
+
+  .page-title p{
+    font-size:13px;
+  }
+
+  .section{
+    padding:15px;
+  }
+
+  .section-header h2{
+    font-size:17px;
+  }
+
+}
+
+@media(min-width:701px){
+
+  .sidebar{
+    position:sticky;
+    top:68px;
+    height:calc(100vh - 68px);
+  }
+
+}
+
+.section-hidden{
+  display:none !important;
+}
+
+.dashboard-hidden{
+  display:none !important;
+}
+
+.nav-item.active{
+  background:#374151 !important;
+  color:#ffffff !important;
+  font-weight:600;
+}
+
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:20px;
+}
+
+.modal-box{
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  border-radius:14px;
+  padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+
+.modal-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.modal-header h3{
+  margin:0 0 5px;
+}
+
+.modal-header p{
+  margin:0;
+  color:#666;
+}
+
+.modal-close{
+  border:0;
+  background:transparent;
+  font-size:28px;
+  cursor:pointer;
+  line-height:1;
+}
+
+.form-group{
+  margin-bottom:16px;
+}
+
+.form-group label{
+  display:block;
+  margin-bottom:6px;
+  font-weight:600;
+}
+
+.form-group input,
+.form-group select{
+  width:100%;
+  box-sizing:border-box;
+  padding:10px 12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:14px;
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:20px;
+}
+
+.primary-btn{
+  border:0;
+  border-radius:8px;
+  padding:10px 16px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <div style="display:flex;align-items:center;gap:10px">
+
+    <button
+      class="menu-toggle"
+      onclick="toggleSidebar()"
+      aria-label="Buka menu">
+      ☰
+    </button>
+
+    <div class="brand">
+      WiFi Management
+    </div>
+
+  </div>
+
+  <div class="header-right">
+
+    <span class="admin-label">
+      Administrator
+    </span>
+
+    <button
+      class="btn-danger"
+      onclick="logout()">
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+<div
+  id="overlay"
+  class="mobile-overlay"
+  onclick="closeSidebar()">
+</div>
+
+<div class="layout">
+
+  <aside id="sidebar" class="sidebar">
+
+    <div class="sidebar-title">
+      Menu Admin
+    </div>
+
+    <button
+      class="menu active"
+      onclick="showSection('dashboard')">
+      <span class="menu-icon">🏠</span>
+      <span>Dashboard</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('members')">
+      <span class="menu-icon">👥</span>
+      <span>Member</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('usage')">
+      <span class="menu-icon">📊</span>
+      <span>Usage Wi-Fi</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('guest')">
+      <span class="menu-icon">📶</span>
+      <span>Guest Wi-Fi</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('perangkat')">
+      <span class="menu-icon">🖥️</span>
+      <span>Perangkat</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('teknisi')">
+      <span class="menu-icon">👨‍🔧</span>
+      <span>Teknisi</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('hakakses')">
+      <span class="menu-icon">🔐</span>
+      <span>Hak Akses</span>
+    </button>
+
+    <button
+      class="menu"
+      onclick="showSection('auditlog')">
+      <span class="menu-icon">📋</span>
+      <span>Audit Log</span>
+    </button>
+
+  </aside>
+
+  <main class="main">
+
+    <div id="message" class="message"></div>
+
+    <div class="page-title" id="dashboard">
+
+      <h1>Dashboard Admin</h1>
+
+      <p>
+        Monitoring dan manajemen sistem Wi-Fi Coworking Space
+      </p>
+
+    </div>
+
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-label">
+          Total Member
+        </div>
+
+        <div
+          class="card-value"
+          id="totalMembers">
+          0
+        </div>
+
+        <div class="card-info">
+          Data member terdaftar
+        </div>
+      </div>
+
+      <div class="card">
+
+        <div class="card-label">
+          Member Aktif
+        </div>
+
+        <div
+          class="card-value"
+          id="activeMembers">
+          0
+        </div>
+
+        <div class="card-info">
+          Status akses ACTIVE
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-label">
+          Usage Record
+        </div>
+
+        <div
+          class="card-value"
+          id="usageRecords">
+          0
+        </div>
+
+        <div class="card-info">
+          Catatan penggunaan
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-label">
+          Total Traffic
+        </div>
+
+        <div
+          class="card-value"
+          id="totalTraffic">
+          0 B
+        </div>
+
+        <div class="card-info">
+          Upload + Download
+        </div>
+
+      </div>
+
+    </div>
+
+    <section
+      class="section"
+      id="members">
+
+      <div class="section-header">
+
+        <h2>👥 Data Member</h2>
+
+        <button
+          class="btn-primary"
+          onclick="loadData()">
+          Refresh
+        </button>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>ID</th>
+              <th>Kode Member</th>
+              <th>Username</th>
+              <th>Nama</th>
+              <th>Email</th>
+              <th>Akses Mulai</th>
+              <th>Akses Berakhir</th>
+              <th>Status</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="memberTable">
+
+            <tr>
+              <td
+                colspan="8"
+                class="empty">
+                Memuat data...
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+    <section
+      class="section"
+      id="usage">
+
+      <div class="section-header">
+
+        <h2>📊 Riwayat Penggunaan Wi-Fi</h2>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>ID</th>
+              <th>Session</th>
+              <th>Username</th>
+              <th>Nama</th>
+              <th>Upload</th>
+              <th>Download</th>
+              <th>Total</th>
+              <th>Waktu</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="usageTable">
+
+            <tr>
+              <td
+                colspan="8"
+                class="empty">
+                Memuat data...
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+    <section class="section" id="guest">
+
+  <div class="section-header">
+    <div>
+      <h2>📶 Guest Wi-Fi</h2>
+      <p>Konfigurasi dan monitoring sesi Guest yang menggunakan jaringan.</p>
+    </div>
+
+    <button class="refresh-btn" onclick="loadGuestData()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-label">SSID Guest</div>
+      <div class="stat-value" id="guestSSID">-</div>
+      <div class="stat-desc">Nama jaringan Guest</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Durasi Akses</div>
+      <div class="stat-value" id="guestDuration">-</div>
+      <div class="stat-desc">Durasi sesi Guest</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Status Wi-Fi</div>
+      <div class="stat-value" id="guestWifiStatus">-</div>
+      <div class="stat-desc">Status konfigurasi Guest</div>
+    </div>
+
+  </div>
+
+  <div class="table-wrap" style="margin-bottom:20px;">
+    <div style="padding:20px;">
+      <h3 style="margin:0 0 6px;">⚙️ Konfigurasi Guest Wi-Fi</h3>
+      <p style="margin:0 0 18px;color:#777;">
+        Ubah SSID, password, dan durasi akses Guest.
+      </p>
+
+      <form id="guestConfigForm" onsubmit="saveGuestConfig(event)">
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;">
+
+          <div>
+            <label for="guestConfigSSID">SSID Guest</label>
+            <input
+              type="text"
+              id="guestConfigSSID"
+              maxlength="100"
+              placeholder="Nama Wi-Fi Guest"
+              required
+              style="width:100%;padding:10px;margin-top:6px;"
+            >
+          </div>
+
+          <div>
+            <label for="guestConfigPassword">Password Guest</label>
+            <input
+              type="password"
+              id="guestConfigPassword"
+              minlength="8"
+              maxlength="100"
+              placeholder="Minimal 8 karakter"
+              required
+              style="width:100%;padding:10px;margin-top:6px;"
+            >
+          </div>
+
+          <div>
+            <label for="guestConfigDuration">Durasi Akses (menit)</label>
+            <input
+              type="number"
+              id="guestConfigDuration"
+              min="1"
+              max="1440"
+              value="120"
+              required
+              style="width:100%;padding:10px;margin-top:6px;"
+            >
+          </div>
+
+        </div>
+
+        <div style="margin-top:18px;">
+          <button type="submit" class="primary-btn">
+            💾 Simpan Konfigurasi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama Guest</th>
+          <th>IP</th>
+          <th>MAC</th>
+          <th>Mulai</th>
+          <th>Berakhir</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody id="guestTableBody">
+
+        <tr>
+          <td colspan="7" class="empty">
+            Memuat data Guest...
+          </td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+  <section class="section section-hidden" id="perangkat">
+
+  <div class="section-header">
+    <div>
+      <h2>🖥️ Perangkat</h2>
+      <p>Daftar perangkat jaringan yang terdaftar pada sistem.</p>
+    </div>
+
+    <button class="refresh-btn" onclick="loadDevices()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-label">Total Perangkat</div>
+      <div class="stat-value" id="totalDevices">0</div>
+      <div class="stat-desc">Perangkat terdaftar</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="section-header">
+      <div>
+        <h3>Tambah Perangkat</h3>
+        <p>Masukkan data perangkat jaringan yang benar-benar digunakan.</p>
+      </div>
+    </div>
+
+    <form id="deviceForm">
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Nama Perangkat</label>
+          <input type="text" id="deviceName" placeholder="Contoh: Router Utama" required>
+        </div>
+
+        <div class="form-group">
+          <label>Tipe Perangkat</label>
+          <select id="deviceType" required>
+            <option value="">Pilih tipe</option>
+            <option value="ROUTER">Router</option>
+            <option value="ACCESS_POINT">Access Point</option>
+            <option value="SWITCH">Switch</option>
+            <option value="GATEWAY">Gateway</option>
+            <option value="OTHER">Lainnya</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Vendor</label>
+          <input type="text" id="deviceVendor" placeholder="Contoh: MikroTik">
+        </div>
+
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="deviceModel" placeholder="Contoh: RB5009">
+        </div>
+
+        <div class="form-group">
+          <label>IP Address</label>
+          <input type="text" id="deviceIP" placeholder="Contoh: 192.168.88.1">
+        </div>
+
+        <div class="form-group">
+          <label>MAC Address</label>
+          <input type="text" id="deviceMAC" placeholder="Contoh: AA:BB:CC:DD:EE:FF">
+        </div>
+
+        <div class="form-group">
+          <label>API Endpoint</label>
+          <input type="text" id="deviceAPI" placeholder="Contoh: https://192.168.88.1">
+        </div>
+
+      </div>
+
+      <button type="submit" class="refresh-btn">
+        + Tambah Perangkat
+      </button>
+
+    </form>
+
+  </div>
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama</th>
+          <th>Tipe</th>
+          <th>Vendor</th>
+          <th>Model</th>
+          <th>IP</th>
+          <th>MAC</th>
+          <th>Status</th>
+          <th>Last Seen</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+
+      <tbody id="deviceTableBody">
+        <tr>
+          <td colspan="10" class="empty">
+            Memuat data perangkat...
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<section id="hakakses" class="section section-hidden">
+  <div class="section-header">
+    <div>
+      <h2>Hak Akses Member</h2>
+      <p>Kelola status dan periode akses Wi-Fi setiap member.</p>
+    </div>
+    <button type="button" class="refresh-btn" onclick="loadAccessMembers()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Kode</th>
+          <th>Status</th>
+          <th>Mulai Akses</th>
+          <th>Akhir Akses</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="accessMemberTableBody">
+        <tr>
+          <td colspan="6" class="empty">
+            Memuat data member...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="auditlog" class="section section-hidden">
+
+  <div class="section-header">
+    <div>
+      <h2>Audit Log</h2>
+      <p>Riwayat aktivitas administrator dan perubahan sistem.</p>
+    </div>
+
+    <button type="button" class="refresh-btn" onclick="loadAuditLogs()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Deskripsi</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+
+      <tbody id="auditLogTableBody">
+        <tr>
+          <td colspan="6" class="empty">
+            Memuat audit log...
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+</main>
+
+</div>
+
+
+<div id="accessModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <h3>Edit Hak Akses</h3>
+        <p id="accessModalMember">Member</p>
+      </div>
+      <button type="button" class="modal-close" onclick="closeAccessModal()">×</button>
+    </div>
+
+    <form id="accessForm" onsubmit="saveMemberAccess(event)">
+      <input type="hidden" id="accessMemberId">
+
+      <div class="form-group">
+        <label>Status Akses</label>
+        <select id="accessStatus" required>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="INACTIVE">INACTIVE</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Mulai Akses</label>
+        <input type="datetime-local" id="accessStart">
+      </div>
+
+      <div class="form-group">
+        <label>Akhir Akses</label>
+        <input type="datetime-local" id="accessEnd">
+      </div>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="refresh-btn"
+          onclick="closeAccessModal()">
+          Batal
+        </button>
+
+        <button
+          type="submit"
+          class="primary-btn">
+          Simpan Perubahan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+function formatBytes(bytes){
+
+  bytes=Number(bytes||0);
+
+  if(bytes<1024){
+    return bytes+" B";
+  }
+
+  const units=[
+    "KB",
+    "MB",
+    "GB",
+    "TB"
+  ];
+
+  let i=-1;
+
+  do{
+
+    bytes/=1024;
+    i++;
+
+  }while(
+    bytes>=1024 &&
+    i<units.length-1
+  );
+
+  return bytes.toFixed(2)+" "+units[i];
+
+}
+
+function formatDate(value){
+
+  if(!value){
+    return "-";
+  }
+
+  const date=new Date(value);
+
+  if(isNaN(date.getTime())){
+    return escapeHTML(value);
+  }
+
+  return date.toLocaleString("id-ID");
+
+}
+
+function showMessage(text,type){
+
+  const box=document.getElementById("message");
+
+  box.textContent=text;
+  box.className="message "+type;
+
+}
+
+async function api(url,options={}){
+
+  const response=await fetch(
+    url,
+    {
+      credentials:"include",
+      ...options
+    }
+  );
+
+  if(response.status===401){
+
+    window.location.href="/";
+
+    throw new Error(
+      "Sesi login sudah habis"
+    );
+
+  }
+
+  const data=await response.json();
+
+  if(!response.ok){
+
+    throw new Error(
+      data.message ||
+      data.error ||
+      "Request gagal"
+    );
+
+  }
+
+  return data;
+
+}
+
+
+
+async function editMemberAccess(memberId){
+
+  console.log("EDIT HAK AKSES DIPANGGIL:", memberId);
+
+  try{
+
+    const data = await api("/api/admin/members");
+    const members = data.members || [];
+
+    const member =
+      members.find(item => Number(item.id) === Number(memberId));
+
+    if(!member){
+      alert("Data member tidak ditemukan.");
+      return;
+    }
+
+    document.getElementById("accessMemberId").value = member.id;
+
+    document.getElementById("accessModalMember").textContent =
+      `${member.full_name || member.username || "-"} (${member.member_code || "-"})`;
+
+    document.getElementById("accessStatus").value =
+      String(member.status || "ACTIVE").toUpperCase();
+
+    document.getElementById("accessStart").value =
+      toDateTimeLocal(member.access_start);
+
+    document.getElementById("accessEnd").value =
+      toDateTimeLocal(member.access_end);
+
+    document.getElementById("accessModal").style.display = "flex";
+
+  }catch(error){
+
+    console.error("Gagal membuka Hak Akses:", error);
+    alert("Gagal mengambil data Hak Akses.");
+
+  }
+}
+
+
+function closeAccessModal(){
+
+  const modal = document.getElementById("accessModal");
+
+  if(modal){
+    modal.style.display = "none";
+  }
+
+}
+
+
+function toDateTimeLocal(value){
+
+  if(!value){
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return "";
+  }
+
+  const offset = date.getTimezoneOffset();
+
+  const localDate =
+    new Date(date.getTime() - offset * 60000);
+
+  return localDate.toISOString().slice(0,16);
+
+}
+
+
+function toRFC3339(value){
+
+  if(!value){
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return "";
+  }
+
+  return date.toISOString();
+
+}
+
+
+async function saveMemberAccess(event){
+
+  event.preventDefault();
+
+  const memberId =
+    document.getElementById("accessMemberId").value;
+
+  const status =
+    document.getElementById("accessStatus").value;
+
+  const start =
+    document.getElementById("accessStart").value;
+
+  const end =
+    document.getElementById("accessEnd").value;
+
+  if(!memberId){
+    alert("Member ID tidak ditemukan.");
+    return;
+  }
+
+  if(
+    status !== "ACTIVE" &&
+    status !== "INACTIVE"
+  ){
+    alert("Status harus ACTIVE atau INACTIVE.");
+    return;
+  }
+
+  if(start && end){
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    if(
+      Number.isNaN(startDate.getTime()) ||
+      Number.isNaN(endDate.getTime())
+    ){
+      alert("Format tanggal tidak valid.");
+      return;
+    }
+
+    if(endDate <= startDate){
+      alert("Akhir akses harus setelah mulai akses.");
+      return;
+    }
+
+  }
+
+  const payload = {
+    access_start: toRFC3339(start),
+    access_end: toRFC3339(end),
+    status: status
+  };
+
+  try{
+
+    const response = await fetch(
+      `/api/admin/members/${memberId}/access`,
+      {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    const result = await response.json();
+
+    if(!response.ok){
+
+      alert(
+        result.message ||
+        result.status ||
+        "Gagal memperbarui Hak Akses."
+      );
+
+      return;
+    }
+
+    closeAccessModal();
+
+    alert("Hak Akses Member berhasil diperbarui.");
+
+    await loadAccessMembers();
+
+  }catch(error){
+
+    console.error("Gagal menyimpan Hak Akses:", error);
+    alert("Terjadi kesalahan saat menyimpan Hak Akses.");
+
+  }
+
+}
+
+
+async function loadAccessMembers(){
+
+  const tbody =
+    document.getElementById("accessMemberTableBody");
+
+  if(!tbody){
+    return;
+  }
+
+  tbody.innerHTML =
+    '<tr><td colspan="6" class="empty">Memuat data member...</td></tr>';
+
+  try{
+
+    const data = await api("/api/admin/members");
+    const members = data.members || [];
+
+    if(members.length === 0){
+      tbody.innerHTML =
+        '<tr><td colspan="6" class="empty">Belum ada member</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = members.map(member => {
+
+      const id = Number(member.id) || 0;
+
+      const name =
+        escapeHTML(
+          member.full_name ||
+          member.name ||
+          member.username ||
+          "-"
+        );
+
+      const code =
+        escapeHTML(
+          member.member_code ||
+          member.code ||
+          "-"
+        );
+
+      const status =
+        String(member.status || "INACTIVE").toUpperCase();
+
+      const statusHTML =
+        status === "ACTIVE"
+          ? '<span class="badge badge-success">ACTIVE</span>'
+          : '<span class="badge badge-danger">INACTIVE</span>';
+
+      const start =
+        member.access_start
+          ? formatAuditDate(member.access_start)
+          : "-";
+
+      const end =
+        member.access_end
+          ? formatAuditDate(member.access_end)
+          : "-";
+
+      return `
+        <tr>
+          <td>${name}</td>
+          <td>${code}</td>
+          <td>${statusHTML}</td>
+          <td>${escapeHTML(start)}</td>
+          <td>${escapeHTML(end)}</td>
+          <td>
+            <button
+              type="button"
+              class="refresh-btn access-edit-btn"
+              data-member-id="${id}">
+              Edit
+            </button>
+          </td>
+        </tr>
+      `;
+
+    }).join("");
+
+    document.querySelectorAll(".access-edit-btn").forEach(button => {
+      button.addEventListener("click", () => {
+        const memberId = button.dataset.memberId;
+        editMemberAccess(memberId);
+      });
+    });
+
+  }catch(error){
+
+    console.error("Gagal memuat Hak Akses:", error);
+
+    tbody.innerHTML =
+      '<tr><td colspan="6" class="empty">Gagal memuat data Hak Akses</td></tr>';
+  }
+}
+
+
+async function loadMembers(){
+
+  const tbody=
+    document.getElementById(
+      "memberTable"
+    );
+
+  const data=
+    await api(
+      "/api/admin/members"
+    );
+
+  const members=
+    data.members || [];
+
+  document.getElementById(
+    "totalMembers"
+  ).textContent=
+    members.length;
+
+  const active=
+    members.filter(
+      member =>
+        String(member.status)
+          .toUpperCase()==="ACTIVE"
+    ).length;
+
+  document.getElementById(
+    "activeMembers"
+  ).textContent=
+    active;
+
+  if(members.length===0){
+
+    tbody.innerHTML=
+      '<tr><td colspan="8" class="empty">Belum ada member</td></tr>';
+
+    return;
+
+  }
+
+  tbody.innerHTML=
+    members.map(
+      member=>`
+
+      <tr>
+
+        <td>
+          ${escapeHTML(member.id)}
+        </td>
+
+        <td>
+          ${escapeHTML(member.member_code)}
+        </td>
+
+        <td>
+          ${escapeHTML(member.username)}
+        </td>
+
+        <td>
+          ${escapeHTML(member.full_name)}
+        </td>
+
+        <td>
+          ${escapeHTML(member.email || "-")}
+        </td>
+
+        <td>
+          ${formatDate(member.access_start)}
+        </td>
+
+        <td>
+          ${formatDate(member.access_end)}
+        </td>
+
+        <td>
+
+          <span class="badge ${
+            String(member.status)
+              .toUpperCase()==="ACTIVE"
+              ? "badge-active"
+              : "badge-offline"
+          }">
+
+            ${escapeHTML(member.status)}
+
+          </span>
+
+        </td>
+
+      </tr>
+
+      `
+    ).join("");
+
+}
+
+async function loadUsage(){
+
+  const tbody=
+    document.getElementById(
+      "usageTable"
+    );
+
+  const data=
+    await api(
+      "/api/admin/usage"
+    );
+
+  const usage=
+    data.usage || [];
+
+  document.getElementById(
+    "usageRecords"
+  ).textContent=
+    data.total ?? usage.length;
+
+  const traffic=
+    usage.reduce(
+      (total,row)=>
+        total+
+        Number(row.upload_bytes||0)+
+        Number(row.download_bytes||0),
+      0
+    );
+
+  document.getElementById(
+    "totalTraffic"
+  ).textContent=
+    formatBytes(traffic);
+
+  if(usage.length===0){
+
+    tbody.innerHTML=
+      '<tr><td colspan="8" class="empty">Belum ada data penggunaan</td></tr>';
+
+    return;
+
+  }
+
+  tbody.innerHTML=
+    usage.map(
+      row=>`
+
+      <tr>
+
+        <td>
+          ${escapeHTML(row.id)}
+        </td>
+
+        <td>
+          ${escapeHTML(row.session_id)}
+        </td>
+
+        <td>
+          ${escapeHTML(row.username)}
+        </td>
+
+        <td>
+          ${escapeHTML(row.full_name)}
+        </td>
+
+        <td>
+          ${formatBytes(row.upload_bytes)}
+        </td>
+
+        <td>
+          ${formatBytes(row.download_bytes)}
+        </td>
+
+        <td>
+          ${formatBytes(row.total_bytes)}
+        </td>
+
+        <td>
+          ${formatDate(row.recorded_at)}
+        </td>
+
+      </tr>
+
+      `
+    ).join("");
+
+}
+
+
+
+async function loadDevices(){
+  const tbody = document.getElementById('deviceTableBody');
+  const total = document.getElementById('totalDevices');
+
+  if (!tbody) return;
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="10" class="empty">Memuat data perangkat...</td>
+    </tr>
+  `;
+
+  try {
+    const response = await fetch('/api/admin/devices', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal mengambil data perangkat');
+    }
+
+    const devices = Array.isArray(data.devices) ? data.devices : [];
+
+    if (total) {
+      total.textContent = devices.length;
+    }
+
+    if (devices.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="10" class="empty">
+            Belum ada perangkat yang terdaftar.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = devices.map(device => `
+      <tr>
+        <td>${device.id ?? '-'}</td>
+        <td>${device.name ?? '-'}</td>
+        <td>${device.device_type ?? '-'}</td>
+        <td>${device.vendor ?? '-'}</td>
+        <td>${device.model ?? '-'}</td>
+        <td>${device.ip_address ?? '-'}</td>
+        <td>${device.mac_address ?? '-'}</td>
+        <td>${device.status ?? 'UNKNOWN'}</td>
+        <td>${device.last_seen ?? '-'}</td>
+        <td>
+          <button
+            type="button"
+            class="refresh-btn"
+            onclick="deleteDevice(${device.id})">
+            Hapus
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+  } catch (error) {
+    console.error('loadDevices:', error);
+
+    if (total) {
+      total.textContent = '0';
+    }
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty">
+          Gagal mengambil data perangkat.
+        </td>
+      </tr>
+    `;
+  }
+}
+
+async function deleteDevice(id){
+  if (!confirm('Yakin ingin menghapus perangkat ini?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/devices/' + id, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal menghapus perangkat');
+    }
+
+    alert('Perangkat berhasil dihapus.');
+    loadDevices();
+
+  } catch (error) {
+    console.error('deleteDevice:', error);
+    alert(error.message || 'Gagal menghapus perangkat.');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('deviceForm');
+
+  if (!form) return;
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      name: document.getElementById('deviceName').value.trim(),
+      device_type: document.getElementById('deviceType').value,
+      vendor: document.getElementById('deviceVendor').value.trim(),
+      model: document.getElementById('deviceModel').value.trim(),
+      ip_address: document.getElementById('deviceIP').value.trim(),
+      mac_address: document.getElementById('deviceMAC').value.trim(),
+      api_endpoint: document.getElementById('deviceAPI').value.trim()
+    };
+
+    if (!payload.name || !payload.device_type) {
+      alert('Nama dan tipe perangkat wajib diisi.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/devices', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Gagal menambahkan perangkat');
+      }
+
+      alert('Perangkat berhasil ditambahkan.');
+
+      form.reset();
+      loadDevices();
+
+    } catch (error) {
+      console.error('createDevice:', error);
+      alert(error.message || 'Gagal menambahkan perangkat.');
+    }
+  });
+});
+
+
+
+async function loadAuditLogs(){
+
+  const tbody = document.getElementById("auditLogTableBody");
+
+  if(!tbody){
+    return;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" class="empty">
+        Memuat audit log...
+      </td>
+    </tr>
+  `;
+
+  try{
+
+    const response = await fetch("/api/admin/audit-logs", {
+      method: "GET",
+      credentials: "same-origin"
+    });
+
+    if(response.status === 401 || response.status === 403){
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            Sesi login tidak valid. Silakan login kembali.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    if(!response.ok){
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+    const logs = Array.isArray(data.logs) ? data.logs : [];
+
+    if(logs.length === 0){
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="empty">
+            Belum ada aktivitas yang tercatat.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    tbody.innerHTML = logs.map(function(log){
+
+      return `
+        <tr>
+          <td>${escapeHTML(formatAuditDate(log.created_at))}</td>
+          <td>${escapeHTML(log.username || "-")}</td>
+          <td><strong>${escapeHTML(log.action || "-")}</strong></td>
+          <td>${escapeHTML(
+            (log.target_type || "-") +
+            " #" +
+            (log.target_id || "-")
+          )}</td>
+          <td>${escapeHTML(log.description || "-")}</td>
+          <td>${escapeHTML(log.ip_address || "-")}</td>
+        </tr>
+      `;
+
+    }).join("");
+
+  }catch(error){
+
+    console.error("Gagal memuat audit log:", error);
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty">
+          Gagal memuat audit log.
+        </td>
+      </tr>
+    `;
+
+  }
+
+}
+
+
+function formatAuditDate(value){
+
+  if(!value){
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return value;
+  }
+
+  return date.toLocaleString("id-ID", {
+    dateStyle: "short",
+    timeStyle: "medium"
+  });
+
+}
+
+
+function showSection(sectionId){
+
+  const dashboard = document.getElementById("dashboard");
+
+  const sections = [
+    "members",
+    "usage",
+    "guest",
+    "perangkat",
+    "teknisi",
+    "hakakses",
+    "auditlog"
+  ];
+
+  if(dashboard){
+    dashboard.classList.add("dashboard-hidden");
+  }
+
+  sections.forEach(function(id){
+
+    const section = document.getElementById(id);
+
+    if(section){
+      section.classList.add("section-hidden");
+    }
+
+  });
+
+  if(sectionId === "dashboard"){
+
+    if(dashboard){
+      dashboard.classList.remove("dashboard-hidden");
+    }
+
+  }else{
+
+    const target = document.getElementById(sectionId);
+
+    if(target){
+      target.classList.remove("section-hidden");
+    }
+
+    if(sectionId === "members"){
+      loadMembers();
+    }
+
+    if(sectionId === "usage"){
+      loadUsage();
+    }
+
+    if(sectionId === "guest"){
+      loadGuestData();
+    }
+
+    if(sectionId === "perangkat"){
+      loadDevices();
+    }
+
+    if(sectionId === "hakakses"){
+      loadAccessMembers();
+    }
+
+    if(sectionId === "auditlog"){
+      loadAuditLogs();
+    }
+
+  }
+
+  updateActiveMenu(sectionId);
+  closeSidebar();
+
+}
+
+function updateActiveMenu(sectionId){
+
+  document.querySelectorAll(".nav-item").forEach(function(item){
+
+    item.classList.remove("active");
+
+  });
+
+  const menuMap = {
+    dashboard: 0,
+    members: 1,
+    usage: 2,
+    guest: 3,
+    perangkat: 4,
+    teknisi: 5,
+    hakakses: 6,
+    auditlog: 7
+  };
+
+  const index = menuMap[sectionId];
+
+  if(index === undefined){
+    return;
+  }
+
+  const menus = document.querySelectorAll(".nav-item");
+
+  if(menus[index]){
+    menus[index].classList.add("active");
+  }
+
+}
+
+async function loadData(){
+
+  try{
+
+    await Promise.all([
+      loadMembers(),
+      loadUsage()
+    ]);
+
+  }catch(error){
+
+    showMessage(
+      error.message,
+      "error"
+    );
+
+  }
+
+}
+
+function toggleSidebar(){
+
+  const sidebar=
+    document.getElementById(
+      "sidebar"
+    );
+
+  const overlay=
+    document.getElementById(
+      "overlay"
+    );
+
+  sidebar.classList.toggle("open");
+  overlay.classList.toggle("show");
+
+}
+
+function closeSidebar(){
+
+  document
+    .getElementById("sidebar")
+    .classList.remove("open");
+
+  document
+    .getElementById("overlay")
+    .classList.remove("show");
+
+}
+
+function goDashboard(){
+
+  document
+    .getElementById("dashboard")
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+  closeSidebar();
+
+}
+
+function focusMembers(){
+
+  document
+    .getElementById("members")
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+  closeSidebar();
+
+}
+
+function focusUsage(){
+
+  document
+    .getElementById("usage")
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+  closeSidebar();
+
+}
+
+async function focusGuest(){
+
+  closeSidebar();
+
+  const section = document.getElementById("guest");
+
+  if(section){
+    section.scrollIntoView({
+      behavior:"smooth"
+    });
+  }
+
+  await loadGuestData();
+
+}
+
+async function loadGuestData(){
+
+  try{
+
+    const [configResponse, guestResponse] = await Promise.all([
+
+      fetch(
+        "/api/admin/wifi-config",
+        {
+          credentials:"include"
+        }
+      ),
+
+      fetch(
+        "/api/admin/guests",
+        {
+          credentials:"include"
+        }
+      )
+
+    ]);
+
+    if(!configResponse.ok){
+
+      showMessage(
+        "Gagal mengambil konfigurasi Guest Wi-Fi.",
+        "error"
+      );
+
+      return;
+    }
+
+    if(!guestResponse.ok){
+
+      showMessage(
+        "Gagal mengambil data Guest Wi-Fi.",
+        "error"
+      );
+
+      return;
+    }
+
+    const configData = await configResponse.json();
+    const guestData = await guestResponse.json();
+
+    const config = configData.config || {};
+
+    const ssidElement = document.getElementById("guestSSID");
+    const durationElement = document.getElementById("guestDuration");
+    const statusElement = document.getElementById("guestWifiStatus");
+
+    if(ssidElement){
+      ssidElement.textContent = config.ssid || "-";
+    }
+
+    if(durationElement){
+
+      const duration = Number(
+        config.guest_duration_minutes
+      );
+
+      durationElement.textContent =
+        Number.isFinite(duration)
+          ? duration + " menit"
+          : "-";
+
+    }
+
+    if(statusElement){
+
+      statusElement.textContent =
+        config.status || "-";
+
+    }
+
+    renderGuestData(
+      guestData.guests || []
+    );
+
+  }catch(error){
+
+    console.error(
+      "Guest Wi-Fi error:",
+      error
+    );
+
+    showMessage(
+      "Tidak dapat terhubung ke backend Guest Wi-Fi.",
+      "error"
+    );
+
+  }
+
+}
+
+function renderGuestData(guests){
+
+  const body = document.getElementById("guestTableBody");
+
+  if(!body){
+    return;
+  }
+
+  body.innerHTML = "";
+
+  if(guests.length === 0){
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;padding:24px;">
+          Belum ada data Guest.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  guests.forEach(function(guest){
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${guest.id ?? "-"}</td>
+      <td>${guest.name ?? "-"}</td>
+      <td>${guest.client_ip ?? "-"}</td>
+      <td>${guest.client_mac ?? "-"}</td>
+      <td>${guest.access_start ?? "-"}</td>
+      <td>${guest.access_end ?? "-"}</td>
+      <td>
+        <span class="status ${guest.session_status === "ONLINE" ? "online" : "offline"}">
+          ${guest.session_status ?? guest.status ?? "-"}
+        </span>
+      </td>
+    `;
+
+    body.appendChild(row);
+
+  });
+
+}
+
+
+async function saveGuestConfig(event){
+
+  event.preventDefault();
+
+  const ssid = document.getElementById("guestConfigSSID").value.trim();
+  const password = document.getElementById("guestConfigPassword").value;
+  const duration = Number(
+    document.getElementById("guestConfigDuration").value
+  );
+
+  if(!ssid){
+    showMessage("SSID Guest wajib diisi.","error");
+    return;
+  }
+
+  if(password.length < 8){
+    showMessage("Password Guest minimal 8 karakter.","error");
+    return;
+  }
+
+  if(!Number.isInteger(duration) || duration <= 0){
+    showMessage("Durasi akses harus lebih dari 0 menit.","error");
+    return;
+  }
+
+  try{
+
+    const response = await fetch(
+      "/api/admin/wifi-config",
+      {
+        method:"POST",
+        credentials:"include",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          ssid:ssid,
+          password:password,
+          duration_minutes:duration
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if(!response.ok){
+      showMessage(
+        data.message || "Gagal menyimpan konfigurasi Guest Wi-Fi.",
+        "error"
+      );
+      return;
+    }
+
+    document.getElementById("guestConfigPassword").value = "";
+
+    showMessage(
+      "Konfigurasi Guest Wi-Fi berhasil disimpan.",
+      "success"
+    );
+
+    await loadGuestData();
+
+  }catch(error){
+
+    console.error(error);
+
+    showMessage(
+      "Tidak dapat terhubung ke server.",
+      "error"
+    );
+
+  }
+
+}
+
+async function logout(){
+
+  try{
+
+    await fetch(
+      "/api/auth/logout",
+      {
+        method:"POST",
+        credentials:"include"
+      }
+    );
+
+  }catch(error){}
+
+  window.location.href="/";
+
+}
+
+loadData();
+
+setInterval(
+  loadData,
+  30000
+);
+
+</script>
+
+</body>
+</html>

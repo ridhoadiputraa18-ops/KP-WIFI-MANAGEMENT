@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WiFi Management - Member</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#222}
+header{background:#1f2937;color:white;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:21px}
+button{border:0;border-radius:7px;padding:10px 15px;cursor:pointer;background:#2563eb;color:white}
+button:hover{opacity:.9}
+button.danger{background:#dc2626}
+.container{max-width:1100px;margin:auto;padding:22px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:20px}
+.card,.section{background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px #0001}
+.card small{color:#666}
+.card h2{margin:8px 0 0}
+.section{margin-bottom:20px}
+.section h2{margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.info{margin:8px 0}
+.label{color:#666;font-size:13px}
+.value{font-weight:bold;margin-top:3px}
+input{width:100%;padding:11px;border:1px solid #ddd;border-radius:7px;margin-top:5px}
+.form-group{margin-bottom:14px}
+.status{display:inline-block;padding:6px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+.online{background:#dcfce7;color:#166534}
+.offline{background:#fee2e2;color:#991b1b}
+.warning{background:#fef3c7;color:#92400e}
+.message{padding:12px;border-radius:7px;margin-bottom:15px;display:none}
+.success{display:block;background:#dcfce7;color:#166534}
+.error{display:block;background:#fee2e2;color:#991b1b}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+th{background:#f8fafc}
+.table-wrap{overflow-x:auto}
+@media(max-width:700px){
+.cards{grid-template-columns:1fr}
+.row{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>WiFi Management — Member</h1>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+
+  <div id="message" class="message"></div>
+
+  <div class="cards">
+    <div class="card">
+      <small>Member</small>
+      <h2 id="memberName">-</h2>
+    </div>
+
+    <div class="card">
+      <small>Status Akun</small>
+      <h2 id="accountStatus">-</h2>
+    </div>
+
+    <div class="card">
+      <small>Status Sesi</small>
+      <h2 id="sessionStatus">OFFLINE</h2>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Profil Member</h2>
+
+    <div class="row">
+      <div>
+        <div class="info">
+          <div class="label">Username</div>
+          <div class="value" id="username">-</div>
+        </div>
+
+        <div class="info">
+          <div class="label">Kode Member</div>
+          <div class="value" id="memberCode">-</div>
+        </div>
+
+        <div class="info">
+          <div class="label">Nama</div>
+          <div class="value" id="fullName">-</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="info">
+          <div class="label">Mulai Akses</div>
+          <div class="value" id="accessStart">-</div>
+        </div>
+
+        <div class="info">
+          <div class="label">Akses Berakhir</div>
+          <div class="value" id="accessEnd">-</div>
+        </div>
+
+        <div class="info">
+          <div class="label">Status Akses</div>
+          <div class="value" id="accessStatus">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Sesi Wi-Fi</h2>
+
+    <div id="activeSession">
+      <p>Belum ada sesi aktif.</p>
+    </div>
+
+    <div id="startForm">
+      <h3>Mulai Sesi</h3>
+
+      <div class="form-group">
+        <label>Nama Perangkat</label>
+        <input id="deviceName" placeholder="Contoh: Laptop Ridho">
+      </div>
+
+      <div class="form-group">
+        <label>IP Perangkat</label>
+        <input id="clientIP" placeholder="Masukkan IP perangkat">
+      </div>
+
+      <div class="form-group">
+        <label>MAC Address</label>
+        <input id="clientMAC" placeholder="Masukkan MAC Address">
+      </div>
+
+      <button onclick="startSession()">Mulai Sesi Wi-Fi</button>
+    </div>
+
+    <div id="stopForm" style="display:none">
+      <button class="danger" onclick="stopSession()">Hentikan Sesi</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Riwayat Penggunaan</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Session</th>
+            <th>Upload</th>
+            <th>Download</th>
+            <th>Total</th>
+            <th>Waktu</th>
+          </tr>
+        </thead>
+        <tbody id="usageTable">
+          <tr>
+            <td colspan="6">Memuat data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function escapeHTML(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function formatBytes(bytes){
+  bytes=Number(bytes||0);
+
+  if(bytes<1024) return bytes+" B";
+
+  const units=["KB","MB","GB","TB"];
+  let i=-1;
+
+  do{
+    bytes/=1024;
+    i++;
+  }while(bytes>=1024 && i<units.length-1);
+
+  return bytes.toFixed(2)+" "+units[i];
+}
+
+function formatDate(value){
+  if(!value)return "-";
+
+  const d=new Date(value);
+
+  if(isNaN(d.getTime()))return escapeHTML(value);
+
+  return d.toLocaleString("id-ID");
+}
+
+function showMessage(text,type){
+  const box=document.getElementById("message");
+  box.textContent=text;
+  box.className="message "+type;
+}
+
+async function api(url,options={}){
+  const response=await fetch(url,{
+    credentials:"include",
+    ...options
+  });
+
+  if(response.status===401){
+    window.location.href="/";
+    throw new Error("Sesi login sudah habis");
+  }
+
+  const data=await response.json();
+
+  if(!response.ok){
+    throw new Error(data.message || "Request gagal");
+  }
+
+  return data;
+}
+
+async function loadProfile(){
+  const data=await api("/api/member/profile");
+
+  const p=data.profile || data.member || data;
+
+  document.getElementById("username").textContent=p.username || "-";
+  document.getElementById("fullName").textContent=p.full_name || p.name || "-";
+  document.getElementById("memberName").textContent=p.full_name || p.name || "-";
+  document.getElementById("memberCode").textContent=p.member_code || "-";
+  document.getElementById("accountStatus").textContent=p.status || "-";
+}
+
+async function loadAccess(){
+  const data=await api("/api/member/access");
+
+  const a=data.access || data;
+
+  document.getElementById("accessStart").textContent=
+    formatDate(a.access_start);
+
+  document.getElementById("accessEnd").textContent=
+    formatDate(a.access_end);
+
+  document.getElementById("accessStatus").textContent=
+    a.access_state || a.member_status || "-";
+}
+
+async function loadActiveSession(){
+  const data=await api("/api/member/sessions/active");
+
+  const sessions=data.sessions || data.active_sessions || [];
+
+  const box=document.getElementById("activeSession");
+  const start=document.getElementById("startForm");
+  const stop=document.getElementById("stopForm");
+
+  if(!sessions.length){
+    document.getElementById("sessionStatus").textContent="OFFLINE";
+    box.innerHTML="<p>Belum ada sesi aktif.</p>";
+    start.style.display="block";
+    stop.style.display="none";
+    return;
+  }
+
+  const s=sessions[0];
+
+  document.getElementById("sessionStatus").textContent="ONLINE";
+
+  box.innerHTML=`
+    <p>
+      <span class="status online">ONLINE</span>
+    </p>
+    <div class="info">
+      <div class="label">Session ID</div>
+      <div class="value">${escapeHTML(s.id)}</div>
+    </div>
+    <div class="info">
+      <div class="label">IP Perangkat</div>
+      <div class="value">${escapeHTML(s.ip_address || "-")}</div>
+    </div>
+    <div class="info">
+      <div class="label">MAC Address</div>
+      <div class="value">${escapeHTML(s.mac_address || "-")}</div>
+    </div>
+    <div class="info">
+      <div class="label">Mulai</div>
+      <div class="value">${formatDate(s.start_time)}</div>
+    </div>
+  `;
+
+  start.style.display="none";
+  stop.style.display="block";
+
+  window.activeSessionId=s.id;
+}
+
+async function startSession(){
+  const deviceName=document.getElementById("deviceName").value.trim();
+  const clientIP=document.getElementById("clientIP").value.trim();
+  const clientMAC=document.getElementById("clientMAC").value.trim();
+
+  if(!deviceName || !clientIP || !clientMAC){
+    showMessage("Nama perangkat, IP, dan MAC wajib diisi.","error");
+    return;
+  }
+
+  try{
+    await api("/api/member/session",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        device_name:deviceName,
+        client_ip:clientIP,
+        client_mac:clientMAC
+      })
+    });
+
+    showMessage("Sesi Wi-Fi berhasil dimulai.","success");
+
+    document.getElementById("deviceName").value="";
+    document.getElementById("clientIP").value="";
+    document.getElementById("clientMAC").value="";
+
+    await loadActiveSession();
+
+  }catch(error){
+    showMessage(error.message,"error");
+  }
+}
+
+async function stopSession(){
+  if(!window.activeSessionId){
+    showMessage("Tidak ada sesi aktif.","error");
+    return;
+  }
+
+  try{
+    await api(
+      "/api/member/session/stop?session_id="+
+      encodeURIComponent(window.activeSessionId),
+      {
+        method:"POST"
+      }
+    );
+
+    window.activeSessionId=null;
+
+    showMessage("Sesi Wi-Fi berhasil dihentikan.","success");
+
+    await loadActiveSession();
+    await loadUsage();
+
+  }catch(error){
+    showMessage(error.message,"error");
+  }
+}
+
+async function loadUsage(){
+  const tbody=document.getElementById("usageTable");
+
+  try{
+    const data=await api("/api/member/usage/history");
+    const usage=data.usage || data.history || [];
+
+    if(!usage.length){
+      tbody.innerHTML=
+        '<tr><td colspan="6">Belum ada riwayat penggunaan.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML=usage.map(row=>`
+      <tr>
+        <td>${escapeHTML(row.id)}</td>
+        <td>${escapeHTML(row.session_id)}</td>
+        <td>${formatBytes(row.upload_bytes)}</td>
+        <td>${formatBytes(row.download_bytes)}</td>
+        <td>${formatBytes(row.total_bytes)}</td>
+        <td>${formatDate(row.recorded_at)}</td>
+      </tr>
+    `).join("");
+
+  }catch(error){
+    tbody.innerHTML=
+      `<tr><td colspan="6">${escapeHTML(error.message)}</td></tr>`;
+  }
+}
+
+async function logout(){
+  try{
+    await fetch("/api/auth/logout",{
+      method:"POST",
+      credentials:"include"
+    });
+  }catch(e){}
+
+  window.location.href="/";
+}
+
+async function loadData(){
+  try{
+    await loadProfile();
+    await loadAccess();
+    await loadActiveSession();
+    await loadUsage();
+  }catch(error){
+    showMessage(error.message,"error");
+  }
+}
+
+loadData();
+
+setInterval(loadActiveSession,15000);
+setInterval(loadUsage,30000);
+</script>
+
+</body>
+</html>

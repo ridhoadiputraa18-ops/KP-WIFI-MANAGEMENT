@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiFi Management - Teknisi</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+
+    .header {
+      height: 64px;
+      background: #111827;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      border: 0;
+      background: #dc2626;
+      color: white;
+      padding: 9px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .container {
+      padding: 24px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .welcome {
+      margin-bottom: 22px;
+    }
+
+    .welcome h1 {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .welcome p {
+      color: #6b7280;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f9fafb;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status-online {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-offline {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-unknown {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .refresh-btn {
+      border: 0;
+      background: #2563eb;
+      color: white;
+      padding: 9px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #6b7280;
+    }
+
+    @media (max-width: 900px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header {
+        padding: 0 15px;
+      }
+
+      .brand {
+        font-size: 17px;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .user-area {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="brand">🛠️ WiFi Management — Teknisi</div>
+
+  <div class="user-area">
+    <span id="technicianName">Teknisi</span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="welcome">
+    <h1>Dashboard Teknisi</h1>
+    <p>Monitoring perangkat dan kondisi jaringan coworking space.</p>
+  </div>
+
+  <div class="stats">
+
+    <div class="stat-card">
+      <div class="stat-label">Total Perangkat</div>
+      <div class="stat-value" id="totalDevices">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Online</div>
+      <div class="stat-value" id="onlineDevices">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Offline</div>
+      <div class="stat-value" id="offlineDevices">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Unknown</div>
+      <div class="stat-value" id="unknownDevices">0</div>
+    </div>
+
+  </div>
+
+  <section class="card">
+
+    <h2>🖥️ Perangkat Jaringan</h2>
+
+    <div class="card-desc">
+      Status perangkat yang terdaftar pada sistem.
+    </div>
+
+    <button class="refresh-btn" onclick="loadDevices()">
+      ↻ Refresh
+    </button>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Tipe</th>
+            <th>Vendor</th>
+            <th>Model</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Last Seen</th>
+          </tr>
+        </thead>
+
+        <tbody id="deviceTableBody">
+
+          <tr>
+            <td colspan="8" class="empty">
+              Memuat data perangkat...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+
+async function loadProfile() {
+
+  try {
+
+    const response = await fetch('/api/technician/profile', {
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.status !== 'OK' || !data.user) {
+      window.location.href = '/';
+      return;
+    }
+
+    if (data.user.role !== 'TECHNICIAN') {
+      window.location.href = '/';
+      return;
+    }
+
+    if (data.user.full_name) {
+      document.getElementById('technicianName').textContent =
+        data.user.full_name;
+    }
+
+  } catch (error) {
+
+    console.error('loadProfile:', error);
+    window.location.href = '/';
+
+  }
+
+}
+
+
+async function runMonitoring() {
+
+  try {
+
+    const response = await fetch('/api/technician/monitor', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal menjalankan monitoring');
+    }
+
+    return data;
+
+  } catch (error) {
+
+    console.error('runMonitoring:', error);
+    throw error;
+
+  }
+
+}
+
+
+async function loadDevices() {
+
+  const tbody = document.getElementById('deviceTableBody');
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="8" class="empty">
+        Memuat data perangkat...
+      </td>
+    </tr>
+  `;
+
+  try {
+
+    await runMonitoring();
+
+    const response = await fetch('/api/technician/devices', {
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Gagal mengambil perangkat');
+    }
+
+    const devices = Array.isArray(data.devices)
+      ? data.devices
+      : [];
+
+    document.getElementById('totalDevices').textContent =
+      devices.length;
+
+    document.getElementById('onlineDevices').textContent =
+      devices.filter(d => d.status === 'ONLINE').length;
+
+    document.getElementById('offlineDevices').textContent =
+      devices.filter(d => d.status === 'OFFLINE').length;
+
+    document.getElementById('unknownDevices').textContent =
+      devices.filter(d =>
+        !d.status ||
+        !['ONLINE', 'OFFLINE'].includes(d.status)
+      ).length;
+
+    if (devices.length === 0) {
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="empty">
+            Belum ada perangkat yang terdaftar.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+    tbody.innerHTML = devices.map(device => {
+
+      let statusClass = 'status-unknown';
+
+      if (device.status === 'ONLINE') {
+        statusClass = 'status-online';
+      }
+
+      if (device.status === 'OFFLINE') {
+        statusClass = 'status-offline';
+      }
+
+      return `
+        <tr>
+          <td>${device.id ?? '-'}</td>
+          <td>${device.name ?? '-'}</td>
+          <td>${device.device_type ?? '-'}</td>
+          <td>${device.vendor ?? '-'}</td>
+          <td>${device.model ?? '-'}</td>
+          <td>${device.ip_address ?? '-'}</td>
+          <td>
+            <span class="status ${statusClass}">
+              ${device.status ?? 'UNKNOWN'}
+            </span>
+          </td>
+          <td>${device.last_seen ?? '-'}</td>
+        </tr>
+      `;
+
+    }).join('');
+
+  } catch (error) {
+
+    console.error('loadDevices:', error);
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="empty">
+          Gagal mengambil data perangkat: ${error.message}
+        </td>
+      </tr>
+    `;
+
+  }
+
+}
+
+
+async function logout() {
+
+  try {
+
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
+
+  } finally {
+
+    window.location.href = '/';
+
+  }
+
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  loadProfile();
+  loadDevices();
+
+});
+
+</script>
+
+</body>
+</html>

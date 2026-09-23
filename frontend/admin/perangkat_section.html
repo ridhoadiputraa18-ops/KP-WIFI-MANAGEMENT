@@ -1,0 +1,119 @@
+<section class="section section-hidden" id="perangkat">
+
+  <div class="section-header">
+    <div>
+      <h2>🖥️ Perangkat</h2>
+      <p>Daftar perangkat jaringan yang terdaftar pada sistem.</p>
+    </div>
+
+    <button class="refresh-btn" onclick="loadDevices()">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-label">Total Perangkat</div>
+      <div class="stat-value" id="totalDevices">0</div>
+      <div class="stat-desc">Perangkat terdaftar</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="section-header">
+      <div>
+        <h3>Tambah Perangkat</h3>
+        <p>Masukkan data perangkat jaringan yang benar-benar digunakan.</p>
+      </div>
+    </div>
+
+    <form id="deviceForm">
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Nama Perangkat</label>
+          <input type="text" id="deviceName" placeholder="Contoh: Router Utama" required>
+        </div>
+
+        <div class="form-group">
+          <label>Tipe Perangkat</label>
+          <select id="deviceType" required>
+            <option value="">Pilih tipe</option>
+            <option value="ROUTER">Router</option>
+            <option value="ACCESS_POINT">Access Point</option>
+            <option value="SWITCH">Switch</option>
+            <option value="GATEWAY">Gateway</option>
+            <option value="OTHER">Lainnya</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Vendor</label>
+          <input type="text" id="deviceVendor" placeholder="Contoh: MikroTik">
+        </div>
+
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="deviceModel" placeholder="Contoh: RB5009">
+        </div>
+
+        <div class="form-group">
+          <label>IP Address</label>
+          <input type="text" id="deviceIP" placeholder="Contoh: 192.168.88.1">
+        </div>
+
+        <div class="form-group">
+          <label>MAC Address</label>
+          <input type="text" id="deviceMAC" placeholder="Contoh: AA:BB:CC:DD:EE:FF">
+        </div>
+
+        <div class="form-group">
+          <label>API Endpoint</label>
+          <input type="text" id="deviceAPI" placeholder="Contoh: https://192.168.88.1">
+        </div>
+
+      </div>
+
+      <button type="submit" class="refresh-btn">
+        + Tambah Perangkat
+      </button>
+
+    </form>
+
+  </div>
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama</th>
+          <th>Tipe</th>
+          <th>Vendor</th>
+          <th>Model</th>
+          <th>IP</th>
+          <th>MAC</th>
+          <th>Status</th>
+          <th>Last Seen</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+
+      <tbody id="deviceTableBody">
+        <tr>
+          <td colspan="10" class="empty">
+            Memuat data perangkat...
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>

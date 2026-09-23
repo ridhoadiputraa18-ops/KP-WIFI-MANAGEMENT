@@ -1,0 +1,33 @@
+# Secrets / sessions
+*.cookie
+*cookie*.txt
+.env
+.env.*
+!.env.example
+
+# Local database
+database.db
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+
+# Go binaries
+backend/kp-wifi-management
+backend/wifi-management
+backend/wifi-monitor-test
+backend/check-devices
+
+# Temporary/test files
+*_test.go
+*.tmp
+*.bak
+*.backup
+.DS_Store
+backend/wifi_config.key
+
+# Backup source files
+*.BACKUP*
+*.backup*

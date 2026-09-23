@@ -1,0 +1,12 @@
+services:
+  wifi-management:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: kp-wifi-management
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../database.db:/app/database.db
+      - ../backend/wifi_config.key:/app/backend/wifi_config.key:ro
