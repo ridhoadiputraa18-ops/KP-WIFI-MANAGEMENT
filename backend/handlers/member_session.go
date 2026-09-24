@@ -68,7 +68,7 @@ func (h *MemberSessionHandler) Start(w http.ResponseWriter, r *http.Request, use
 	err := h.DB.QueryRow(`
 		SELECT id, status
 		FROM members
-		WHERE user_id = ?
+		WHERE user_id = $1
 	`, userID).Scan(&memberID, &memberStatus)
 
 	if err == sql.ErrNoRows {
@@ -99,7 +99,7 @@ func (h *MemberSessionHandler) Start(w http.ResponseWriter, r *http.Request, use
 	err = h.DB.QueryRow(`
 		SELECT access_start, access_end
 		FROM members
-		WHERE id = ?
+		WHERE id = $1
 	`, memberID).Scan(&accessStart, &accessEnd)
 
 	if err != nil {
@@ -138,7 +138,7 @@ func (h *MemberSessionHandler) Start(w http.ResponseWriter, r *http.Request, use
 	err = h.DB.QueryRow(`
 		SELECT id
 		FROM sessions
-		WHERE user_id = ?
+		WHERE user_id = $1
 		  AND status = 'ONLINE'
 		ORDER BY started_at DESC
 		LIMIT 1
@@ -160,34 +160,29 @@ func (h *MemberSessionHandler) Start(w http.ResponseWriter, r *http.Request, use
 		return
 	}
 
-	result, err := h.DB.Exec(`
-		INSERT INTO sessions (
-			user_id,
-			client_ip,
-			client_mac,
-			started_at,
-			status
-		)
-		VALUES (?, ?, ?, ?, 'ONLINE')
-	`,
+	var sessionID int64
+
+	err = h.DB.QueryRow(`
+                INSERT INTO sessions (
+                        user_id,
+                        client_ip,
+                        client_mac,
+                        started_at,
+                        status
+                )
+                VALUES ($1, $2, $3, $4, 'ONLINE')
+                RETURNING id
+        `,
 		userID,
 		nullString(req.IP),
 		nullString(req.MAC),
 		now.Format(time.RFC3339),
-	)
+	).Scan(&sessionID)
 
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{
 			"status":  "DATABASE_ERROR",
 			"message": err.Error(),
-		})
-		return
-	}
-
-	sessionID, err := result.LastInsertId()
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{
-			"status": "DATABASE_ERROR",
 		})
 		return
 	}

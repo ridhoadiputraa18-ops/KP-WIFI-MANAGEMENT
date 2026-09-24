@@ -62,7 +62,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			u.status
 		FROM users u
 		JOIN roles r ON r.id = u.role_id
-		WHERE u.username = ?
+		WHERE u.username = $1
 	`, req.Username).Scan(
 		&userID,
 		&role,
@@ -95,23 +95,9 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	expires := time.Now().Add(8 * time.Hour)
 
 	_, err = h.DB.Exec(`
-		CREATE TABLE IF NOT EXISTS auth_sessions (
-			token TEXT PRIMARY KEY,
-			user_id INTEGER NOT NULL,
-			expires_at DATETIME NOT NULL,
-			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-		)
-	`)
-
-	if err != nil {
-		http.Error(w, "Gagal membuat session", http.StatusInternalServerError)
-		return
-	}
-
-	_, err = h.DB.Exec(`
 		INSERT INTO auth_sessions
 			(token, user_id, expires_at)
-		VALUES (?, ?, ?)
+		VALUES ($1, $2, $3)
 	`, token, userID, expires)
 
 	if err != nil {
@@ -226,7 +212,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("wifi_management_session")
 	if err == nil && cookie.Value != "" {
 		_, _ = h.DB.Exec(
-			`DELETE FROM auth_sessions WHERE token = ?`,
+			`DELETE FROM auth_sessions WHERE token = $1`,
 			cookie.Value,
 		)
 	}

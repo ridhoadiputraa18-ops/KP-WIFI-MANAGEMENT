@@ -32,7 +32,7 @@ func (a *AuditLogger) Log(
 	_, err := a.DB.Exec(`
 		INSERT INTO audit_logs
 			(user_id, action, target_type, target_id, description, ip_address)
-		VALUES (?, ?, ?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4, $5, $6)
 	`,
 		userID,
 		action,

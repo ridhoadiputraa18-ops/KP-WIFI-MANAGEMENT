@@ -113,8 +113,8 @@ func (m *DeviceMonitor) updateDeviceStatus(
 	if result.LastSeen != nil {
 		_, err := m.DB.ExecContext(ctx, `
 			UPDATE devices
-			SET status = ?, last_seen = ?
-			WHERE id = ?
+			SET status = $1, last_seen = $2
+			WHERE id = $3
 		`,
 			result.Status,
 			result.LastSeen,
@@ -125,8 +125,8 @@ func (m *DeviceMonitor) updateDeviceStatus(
 
 	_, err := m.DB.ExecContext(ctx, `
 		UPDATE devices
-		SET status = ?
-		WHERE id = ?
+		SET status = $1
+		WHERE id = $3
 	`,
 		result.Status,
 		result.DeviceID,

@@ -51,7 +51,7 @@ func (a *Auth) GetUser(r *http.Request) (*User, bool) {
 		FROM auth_sessions s
 		JOIN users u ON u.id = s.user_id
 		JOIN roles ro ON ro.id = u.role_id
-		WHERE s.token = ?
+		WHERE s.token = $1
 		  AND u.status = 'ACTIVE'
 	`, cookie.Value).Scan(
 		&user.ID,
@@ -67,7 +67,7 @@ func (a *Auth) GetUser(r *http.Request) (*User, bool) {
 
 	if time.Now().After(expiresAt) {
 		_, _ = a.DB.Exec(
-			`DELETE FROM auth_sessions WHERE token = ?`,
+			`DELETE FROM auth_sessions WHERE token = $1`,
 			cookie.Value,
 		)
 		return nil, false

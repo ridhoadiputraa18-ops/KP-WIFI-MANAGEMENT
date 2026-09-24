@@ -151,7 +151,7 @@ func (h *TechnicianAdminHandler) Create(w http.ResponseWriter, r *http.Request) 
 	var existing int
 
 	err = h.DB.QueryRow(`
-		SELECT COUNT(*) FROM users WHERE username = ?
+		SELECT COUNT(*) FROM users WHERE username = $1
 	`, req.Username).Scan(&existing)
 
 	if err != nil {
@@ -178,31 +178,31 @@ func (h *TechnicianAdminHandler) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var result sql.Result
+        var id int64
 
-	if req.Email == "" {
-		result, err = h.DB.Exec(`
-			INSERT INTO users
-				(role_id, username, password_hash, full_name, status)
-			VALUES (?, ?, ?, ?, 'ACTIVE')
-		`, roleID, req.Username, passwordHash, req.FullName)
-	} else {
-		result, err = h.DB.Exec(`
-			INSERT INTO users
-				(role_id, username, password_hash, full_name, email, status)
-			VALUES (?, ?, ?, ?, ?, 'ACTIVE')
-		`, roleID, req.Username, passwordHash, req.FullName, req.Email)
-	}
+        if req.Email == "" {
+                err = h.DB.QueryRow(`
+                        INSERT INTO users
+                                (role_id, username, password_hash, full_name, status)
+                        VALUES ($1, $2, $3, $4, 'ACTIVE')
+                        RETURNING id
+                `, roleID, req.Username, passwordHash, req.FullName).Scan(&id)
+        } else {
+                err = h.DB.QueryRow(`
+                        INSERT INTO users
+                                (role_id, username, password_hash, full_name, email, status)
+                        VALUES ($1, $2, $3, $4, $5, 'ACTIVE')
+                        RETURNING id
+                `, roleID, req.Username, passwordHash, req.FullName, req.Email).Scan(&id)
+        }
 
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "Gagal membuat akun teknisi",
-		})
-		return
-	}
-
-	id, _ := result.LastInsertId()
+        if err != nil {
+                writeJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Gagal membuat akun teknisi",
+                })
+                return
+        }
 
 	// Audit log pembuatan akun teknisi.
 	if currentUser, ok := middleware.CurrentUser(r); ok {
@@ -256,7 +256,7 @@ func (h *TechnicianAdminHandler) Delete(w http.ResponseWriter, r *http.Request) 
 	err = h.DB.QueryRow(`
 		SELECT username
 		FROM users
-		WHERE id = ?
+		WHERE id = $1
 		AND role_id = (SELECT id FROM roles WHERE name = 'TECHNICIAN')
 	`, id).Scan(&technicianUsername)
 
@@ -278,7 +278,7 @@ func (h *TechnicianAdminHandler) Delete(w http.ResponseWriter, r *http.Request) 
 
 	result, err := h.DB.Exec(`
 		DELETE FROM users
-		WHERE id = ?
+		WHERE id = $1
 		AND role_id = (SELECT id FROM roles WHERE name = 'TECHNICIAN')
 	`, id)
 

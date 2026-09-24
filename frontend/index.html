@@ -1,220 +1,205 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Management - Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<title>WiFi Management - Coworking Space</title>
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
-            padding: 20px;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        .login-box {
-            width: 100%;
-            max-width: 420px;
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,.10);
-        }
+body {
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #111827;
+}
 
-        h1 {
-            text-align: center;
-            margin-bottom: 8px;
-            font-size: 25px;
-            color: #111827;
-        }
+.container {
+    width: 100%;
+    max-width: 950px;
+}
 
-        .subtitle {
-            text-align: center;
-            color: #6b7280;
-            margin-bottom: 28px;
-            font-size: 14px;
-        }
+.header {
+    text-align: center;
+    color: white;
+    margin-bottom: 28px;
+}
 
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #374151;
-        }
+.header h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
 
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #d1d5db;
-            border-radius: 9px;
-            margin-bottom: 17px;
-            font-size: 15px;
-            outline: none;
-        }
+.header p {
+    color: #dbeafe;
+    font-size: 15px;
+}
 
-        input:focus {
-            border-color: #2563eb;
-        }
+.cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
 
-        button {
-            width: 100%;
-            border: none;
-            border-radius: 9px;
-            padding: 13px;
-            background: #2563eb;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 12px 35px rgba(0,0,0,.20);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
 
-        button:disabled {
-            opacity: .7;
-            cursor: wait;
-        }
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,.25);
+}
 
-        .message {
-            display: none;
-            margin-bottom: 16px;
-            padding: 11px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
+.icon {
+    font-size: 34px;
+    margin-bottom: 12px;
+}
 
-        .error {
-            display: block;
-            background: #fee2e2;
-            color: #991b1b;
-        }
+.card h2 {
+    font-size: 21px;
+    margin-bottom: 8px;
+}
 
-        .info {
-            display: block;
-            background: #dbeafe;
-            color: #1e40af;
-        }
+.card p {
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 44px;
+    margin-bottom: 18px;
+}
 
-        .footer {
-            text-align: center;
-            margin-top: 22px;
-            color: #9ca3af;
-            font-size: 12px;
-        }
-    </style>
+button {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+}
+
+button:hover {
+    opacity: .9;
+}
+
+.guest button {
+    background: #059669;
+}
+
+.footer {
+    text-align: center;
+    color: #bfdbfe;
+    font-size: 12px;
+    margin-top: 22px;
+}
+
+@media (max-width: 650px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 26px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<div class="login-box">
-    <h1>WiFi Management</h1>
-    <div class="subtitle">Coworking Space Management System</div>
+<div class="container">
 
-    <div id="message" class="message"></div>
+    <div class="header">
+        <h1>WiFi Management System</h1>
+        <p>Coworking Space Management & Wi-Fi Access Control</p>
+    </div>
 
-    <form id="loginForm">
-        <label for="username">Username</label>
-        <input
-            type="text"
-            id="username"
-            name="username"
-            placeholder="Masukkan username"
-            autocomplete="username"
-            required
-        >
+    <div class="cards">
 
-        <label for="password">Password</label>
-        <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Masukkan password"
-            autocomplete="current-password"
-            required
-        >
+        <!-- GUEST -->
+        <div class="card guest">
+            <div class="icon">🌐</div>
+            <h2>Guest Wi-Fi</h2>
+            <p>
+                Akses Wi-Fi untuk tamu dengan sesi penggunaan
+                dan pencatatan durasi akses.
+            </p>
 
-        <button type="submit" id="loginButton">
-            Login
-        </button>
-    </form>
+            <button onclick="location.href='/guest/'">
+                Masuk sebagai Guest
+            </button>
+        </div>
+
+        <!-- MEMBER -->
+        <div class="card">
+            <div class="icon">👤</div>
+            <h2>Member</h2>
+            <p>
+                Login member untuk melihat status akses,
+                sesi aktif, hak akses, dan penggunaan Wi-Fi.
+            </p>
+
+            <button onclick="loginAs('MEMBER')">
+                Login Member
+            </button>
+        </div>
+
+        <!-- ADMIN -->
+        <div class="card">
+            <div class="icon">🛡️</div>
+            <h2>Admin</h2>
+            <p>
+                Pengelolaan member, guest, teknisi,
+                perangkat, akses Wi-Fi, dan audit log.
+            </p>
+
+            <button onclick="loginAs('ADMIN')">
+                Login Admin
+            </button>
+        </div>
+
+        <!-- TEKNISI -->
+        <div class="card">
+            <div class="icon">🔧</div>
+            <h2>Teknisi</h2>
+            <p>
+                Monitoring perangkat jaringan,
+                status perangkat, dan informasi teknis.
+            </p>
+
+            <button onclick="loginAs('TECHNICIAN')">
+                Login Teknisi
+            </button>
+        </div>
+
+    </div>
 
     <div class="footer">
-        Sistem Manajemen Akses Wi-Fi
+        Sistem Manajemen Akses Wi-Fi • Coworking Space
     </div>
+
 </div>
 
 <script>
-const form = document.getElementById("loginForm");
-const button = document.getElementById("loginButton");
-const message = document.getElementById("message");
-
-function showMessage(text, type) {
-    message.textContent = text;
-    message.className = "message " + type;
+function loginAs(role) {
+    window.location.href = "/login/?role=" + encodeURIComponent(role);
 }
-
-form.addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
-
-    if (!username || !password) {
-        showMessage("Username dan password wajib diisi.", "error");
-        return;
-    }
-
-    button.disabled = true;
-    button.textContent = "Login...";
-
-    showMessage("Memproses login...", "info");
-
-    try {
-        const response = await fetch("/api/auth/login", {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || data.status !== "OK") {
-            throw new Error(data.message || "Username atau password salah.");
-        }
-
-        const role = String(data.role || "").toUpperCase();
-
-        if (role === "ADMIN") {
-            window.location.href = "/admin/";
-        } else if (role === "MEMBER") {
-            window.location.href = "/member/";
-        } else if (role === "TECHNICIAN") {
-            window.location.href = "/technician/";
-        } else {
-            throw new Error("Role pengguna tidak dikenali.");
-        }
-
-    } catch (error) {
-        showMessage(error.message || "Login gagal.", "error");
-        button.disabled = false;
-        button.textContent = "Login";
-    }
-});
 </script>
 
 </body>

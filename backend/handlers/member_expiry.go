@@ -19,7 +19,7 @@ func (h *MemberExpiryHandler) ExpireMembers() error {
 		WHERE status = 'ACTIVE'
 		  AND access_end IS NOT NULL
 		  AND access_end != ''
-		  AND datetime(access_end) <= CURRENT_TIMESTAMP
+		  AND access_end <= CURRENT_TIMESTAMP
 	`)
 	return err
 }

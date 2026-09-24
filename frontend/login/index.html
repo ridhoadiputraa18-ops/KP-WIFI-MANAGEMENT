@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - WiFi Management</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    font-family:Arial,sans-serif;
+    background:linear-gradient(135deg,#0f172a,#1e3a8a);
+}
+
+.box{
+    width:100%;
+    max-width:420px;
+    background:white;
+    padding:30px;
+    border-radius:18px;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+h1{
+    text-align:center;
+    color:#111827;
+    margin-bottom:6px;
+}
+
+.role{
+    text-align:center;
+    color:#2563eb;
+    font-weight:bold;
+    margin-bottom:25px;
+}
+
+label{
+    display:block;
+    margin:14px 0 7px;
+    font-weight:bold;
+    color:#374151;
+}
+
+input{
+    width:100%;
+    padding:13px;
+    border:1px solid #d1d5db;
+    border-radius:9px;
+    font-size:15px;
+}
+
+button{
+    width:100%;
+    margin-top:22px;
+    padding:13px;
+    border:0;
+    border-radius:9px;
+    background:#2563eb;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.back{
+    display:block;
+    text-align:center;
+    margin-top:18px;
+    color:#6b7280;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.message{
+    display:none;
+    margin-top:15px;
+    padding:10px;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.info{
+    display:block;
+    background:#dbeafe;
+    color:#1e40af;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h1>WiFi Management</h1>
+
+    <div class="role" id="roleText">
+        Login
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <form id="loginForm">
+
+        <label for="username">Username</label>
+        <input
+            id="username"
+            type="text"
+            autocomplete="username"
+            required
+        >
+
+        <label for="password">Password</label>
+        <input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            required
+        >
+
+        <button type="submit" id="loginButton">
+            Login
+        </button>
+
+    </form>
+
+    <a href="/" class="back">← Kembali ke halaman utama</a>
+
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const selectedRole = (params.get("role") || "").toUpperCase();
+
+const roleNames = {
+    MEMBER: "Login Member",
+    ADMIN: "Login Admin",
+    TECHNICIAN: "Login Teknisi"
+};
+
+document.getElementById("roleText").textContent =
+    roleNames[selectedRole] || "Login Pengguna";
+
+const form = document.getElementById("loginForm");
+const button = document.getElementById("loginButton");
+const message = document.getElementById("message");
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = "message " + type;
+}
+
+form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    button.disabled = true;
+    button.textContent = "Login...";
+
+    try {
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: document.getElementById("username").value.trim(),
+                password: document.getElementById("password").value
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.status !== "OK") {
+            throw new Error(data.message || "Username atau password salah.");
+        }
+
+        const role = String(data.role || "").toUpperCase();
+
+        if (selectedRole && role !== selectedRole) {
+            throw new Error(
+                "Akun ini bukan akun " +
+                (roleNames[selectedRole] || selectedRole) + "."
+            );
+        }
+
+        if (role === "ADMIN") {
+            location.href = "/admin/";
+        } else if (role === "MEMBER") {
+            location.href = "/member/";
+        } else if (role === "TECHNICIAN") {
+            location.href = "/technician/";
+        } else {
+            throw new Error("Role tidak dikenali.");
+        }
+
+    } catch (error) {
+        showMessage(error.message || "Login gagal.", "error");
+        button.disabled = false;
+        button.textContent = "Login";
+    }
+});
+</script>
+
+</body>
+</html>

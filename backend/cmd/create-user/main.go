@@ -60,7 +60,7 @@ func main() {
 	_, err = db.Exec(`
 		INSERT INTO users
 			(role_id, username, password_hash, full_name, email, status)
-		VALUES (?, ?, ?, ?, ?, 'ACTIVE')
+		VALUES ($1, $2, $3, $4, $5, 'ACTIVE')
 	`, roleID, username, passwordHash, fullName, nullString(email))
 
 	if err != nil {

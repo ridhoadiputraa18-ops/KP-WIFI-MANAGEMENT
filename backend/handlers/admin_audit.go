@@ -53,7 +53,7 @@ func (h *AdminAuditHandler) List(w http.ResponseWriter, r *http.Request) {
 		FROM audit_logs a
 		LEFT JOIN users u ON u.id = a.user_id
 		ORDER BY a.id DESC
-		LIMIT ? OFFSET ?
+		LIMIT $1 OFFSET $2
 	`, limit, offset)
 
 	if err != nil {

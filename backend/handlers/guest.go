@@ -173,12 +173,14 @@ func (h *GuestHandler) StartSession(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	result, err := tx.Exec(`
-		INSERT INTO guests
-			(name, access_start, access_end, status)
-		VALUES
-			(?, ?, ?, 'ACTIVE')
-	`, req.Name, now, end)
+	var guestID int64
+	err = tx.QueryRow(`
+                INSERT INTO guests
+                        (name, access_start, access_end, status)
+                VALUES
+                        ($1, $2, $3, 'ACTIVE')
+                RETURNING id
+        `, req.Name, now, end).Scan(&guestID)
 
 	if err != nil {
 		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -188,21 +190,14 @@ func (h *GuestHandler) StartSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guestID, err := result.LastInsertId()
-	if err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
-
-	result, err = tx.Exec(`
-		INSERT INTO sessions
-			(guest_id, client_ip, client_mac, started_at, status)
-		VALUES
-			(?, ?, ?, ?, 'ONLINE')
-	`, guestID, req.ClientIP, req.ClientMAC, now)
+	var sessionID int64
+	err = tx.QueryRow(`
+                INSERT INTO sessions
+                        (guest_id, client_ip, client_mac, started_at, status)
+                VALUES
+                        ($1, $2, $3, $4, 'ONLINE')
+                RETURNING id
+        `, guestID, req.ClientIP, req.ClientMAC, now).Scan(&sessionID)
 
 	if err != nil {
 		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -211,8 +206,6 @@ func (h *GuestHandler) StartSession(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
-	sessionID, err := result.LastInsertId()
 	if err != nil {
 		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
 			"status":  "ERROR",
@@ -473,22 +466,14 @@ func (h *GuestHandler) SaveConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		result, err := tx.Exec(`
-			INSERT INTO wifi_configs
-				(ssid, network_type, password_encrypted,
-				 guest_duration_minutes, status)
-			VALUES (?, 'GUEST', ?, ?, 'ACTIVE')
-		`, req.SSID, encryptedPassword, req.DurationMinute)
+		err = tx.QueryRow(`
+                        INSERT INTO wifi_configs
+                                (ssid, network_type, password_encrypted,
+                                 guest_duration_minutes, status)
+                        VALUES ($1, 'GUEST', $2, $3, 'ACTIVE')
+                        RETURNING id
+                `, req.SSID, encryptedPassword, req.DurationMinute).Scan(&configID)
 
-		if err != nil {
-			writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-				"status":  "ERROR",
-				"message": err.Error(),
-			})
-			return
-		}
-
-		configID, err = result.LastInsertId()
 		if err != nil {
 			writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"status":  "ERROR",
@@ -527,14 +512,14 @@ func (h *GuestHandler) SaveConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		_, err = tx.Exec(`
-			UPDATE wifi_configs
-			SET ssid = ?,
-				password_encrypted = ?,
-				guest_duration_minutes = ?,
-				status = 'ACTIVE',
-				updated_at = CURRENT_TIMESTAMP
-			WHERE id = ?
-		`, req.SSID, passwordToSave, req.DurationMinute, configID)
+                        UPDATE wifi_configs
+                        SET ssid = $1,
+                                password_encrypted = $2,
+                                guest_duration_minutes = $3,
+                                status = 'ACTIVE',
+                                updated_at = CURRENT_TIMESTAMP
+                        WHERE id = $4
+                `, req.SSID, passwordToSave, req.DurationMinute, configID)
 
 		if err != nil {
 			writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -546,11 +531,11 @@ func (h *GuestHandler) SaveConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err = tx.Exec(`
-		UPDATE wifi_configs
-		SET status = 'INACTIVE'
-		WHERE network_type = 'GUEST'
-		  AND id != ?
-	`, configID); err != nil {
+                UPDATE wifi_configs
+                SET status = 'INACTIVE'
+                WHERE network_type = 'GUEST'
+                  AND id != $1
+        `, configID); err != nil {
 		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
 			"status":  "ERROR",
 			"message": err.Error(),
@@ -666,12 +651,12 @@ func (h *GuestHandler) StopSession(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().UTC()
 
 	result, err := h.DB.Exec(`
-		UPDATE sessions
-		SET status = 'OFFLINE',
-		    ended_at = ?
-		WHERE guest_id = ?
-		  AND status = 'ONLINE'
-	`, now, guestID)
+                UPDATE sessions
+                SET status = 'OFFLINE',
+                    ended_at = $1
+                WHERE guest_id = $2
+                  AND status = 'ONLINE'
+        `, now, guestID)
 
 	if err != nil {
 		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -706,11 +691,11 @@ func (h *GuestHandler) StopSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, _ = h.DB.Exec(`
-		UPDATE guests
-		SET status = 'EXPIRED',
-		    access_end = ?
-		WHERE id = ?
-	`, now, guestID)
+                UPDATE guests
+                SET status = 'EXPIRED',
+                    access_end = $1
+                WHERE id = $2
+        `, now, guestID)
 
 	writeGuestJSON(w, http.StatusOK, map[string]interface{}{
 		"status":           "OK",

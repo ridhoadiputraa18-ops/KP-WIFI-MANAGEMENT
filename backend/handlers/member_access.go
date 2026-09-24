@@ -38,7 +38,7 @@ func (h *MemberAccessHandler) Get(w http.ResponseWriter, r *http.Request, userID
 			m.access_start,
 			m.access_end
 		FROM members m
-		WHERE m.user_id = ?
+		WHERE m.user_id = $1
 	`, userID).Scan(
 		&memberID,
 		&memberCode,

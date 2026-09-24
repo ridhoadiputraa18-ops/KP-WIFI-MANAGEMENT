@@ -46,7 +46,7 @@ func (h *MemberProfileHandler) Get(w http.ResponseWriter, r *http.Request, userI
 			COALESCE(m.access_end, '')
 		FROM members m
 		JOIN users u ON u.id = m.user_id
-		WHERE u.id = ?
+		WHERE u.id = $1
 	`, userID).Scan(
 		&profile.ID,
 		&profile.UserID,

@@ -31,7 +31,7 @@ func (h *TechnicianProfileHandler) Profile(w http.ResponseWriter, r *http.Reques
 	err := h.DB.QueryRow(`
 		SELECT username, full_name, COALESCE(email, ''), status
 		FROM users
-		WHERE id = ?
+		WHERE id = $1
 		  AND role_id = (
 			SELECT id FROM roles WHERE name = 'TECHNICIAN'
 		  )

@@ -47,8 +47,8 @@ func (h *MemberSessionStopHandler) Stop(w http.ResponseWriter, r *http.Request, 
 	err = h.DB.QueryRow(`
 		SELECT status
 		FROM sessions
-		WHERE id = ?
-		  AND user_id = ?
+             WHERE id = $1
+               AND user_id = $2
 	`, sessionID, userID).Scan(&status)
 
 	if err == sql.ErrNoRows {
@@ -79,10 +79,10 @@ func (h *MemberSessionStopHandler) Stop(w http.ResponseWriter, r *http.Request, 
 
 	result, err := h.DB.Exec(`
 		UPDATE sessions
-		SET ended_at = ?,
+             SET ended_at = $1,
 		    status = 'OFFLINE'
-		WHERE id = ?
-		  AND user_id = ?
+             WHERE id = $2
+               AND user_id = $3
 		  AND status = 'ONLINE'
 	`, endedAt.Format(time.RFC3339), sessionID, userID)
 

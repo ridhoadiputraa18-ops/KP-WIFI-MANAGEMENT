@@ -123,10 +123,10 @@ func (h *MemberAccessAdminHandler) Update(w http.ResponseWriter, r *http.Request
 
 	result, err := h.DB.Exec(`
 		UPDATE members
-		SET access_start = ?,
-		    access_end = ?,
-		    status = ?
-		WHERE id = ?
+            SET access_start = $1,
+                access_end = $2,
+                status = $3
+            WHERE id = $4
 	`, accessStart, accessEnd, req.Status, memberID)
 
 	if err != nil {
@@ -158,7 +158,7 @@ func (h *MemberAccessAdminHandler) Update(w http.ResponseWriter, r *http.Request
 		SELECT u.username, COALESCE(u.full_name, '')
 		FROM members m
 		JOIN users u ON u.id = m.user_id
-		WHERE m.id = ?
+		WHERE m.id = $1
 	`, memberID).Scan(&memberUsername, &memberFullName)
 
 	if err != nil {

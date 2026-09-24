@@ -188,17 +188,20 @@ func (h *GuestAdminHandler) saveConfig(w http.ResponseWriter, r *http.Request) {
 	`).Scan(&existingID)
 
 	if err == sql.ErrNoRows {
-		result, err := h.DB.Exec(`
-			INSERT INTO wifi_configs
-			(ssid, network_type, password_encrypted,
-			 guest_duration_minutes, status)
-			VALUES (?, 'GUEST', ?, ?, ?)
-		`,
+		var id int64
+
+		err = h.DB.QueryRow(`
+                        INSERT INTO wifi_configs
+                        (ssid, network_type, password_encrypted,
+                         guest_duration_minutes, status)
+                        VALUES ($1, 'GUEST', $2, $3, $4)
+                        RETURNING id
+                `,
 			req.SSID,
 			encrypted,
 			req.GuestDurationMinutes,
 			req.Status,
-		)
+		).Scan(&id)
 
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]any{
@@ -208,14 +211,13 @@ func (h *GuestAdminHandler) saveConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		id, _ := result.LastInsertId()
-
 		writeJSON(w, http.StatusCreated, map[string]any{
 			"status":  "OK",
 			"message": "Konfigurasi Guest Wi-Fi berhasil dibuat",
 			"id":      id,
 		})
 		return
+
 	}
 
 	if err != nil {
@@ -228,12 +230,12 @@ func (h *GuestAdminHandler) saveConfig(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.DB.Exec(`
 		UPDATE wifi_configs
-		SET ssid = ?,
-		    password_encrypted = ?,
-		    guest_duration_minutes = ?,
-		    status = ?,
-		    updated_at = CURRENT_TIMESTAMP
-		WHERE id = ?
+            SET ssid = $1,
+                password_encrypted = $2,
+                guest_duration_minutes = $3,
+                status = $4,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $5
 	`,
 		req.SSID,
 		encrypted,
@@ -402,15 +404,18 @@ func (h *GuestAdminHandler) CreateGuest(w http.ResponseWriter, r *http.Request) 
 	start := time.Now().UTC()
 	end := start.Add(time.Duration(duration) * time.Minute)
 
-	result, err := h.DB.Exec(`
-		INSERT INTO guests
-		(name, access_start, access_end, status)
-		VALUES (?, ?, ?, 'ACTIVE')
-	`,
+	var id int64
+
+	err = h.DB.QueryRow(`
+                INSERT INTO guests
+                (name, access_start, access_end, status)
+                VALUES ($1, $2, $3, 'ACTIVE')
+                RETURNING id
+        `,
 		req.Name,
 		start.Format(time.RFC3339),
 		end.Format(time.RFC3339),
-	)
+	).Scan(&id)
 
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{
@@ -419,8 +424,6 @@ func (h *GuestAdminHandler) CreateGuest(w http.ResponseWriter, r *http.Request) 
 		})
 		return
 	}
-
-	id, _ := result.LastInsertId()
 
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"status":       "OK",

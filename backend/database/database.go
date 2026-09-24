@@ -3,12 +3,26 @@ package database
 import (
 	"database/sql"
 	"log"
+	"os"
+	"strings"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "modernc.org/sqlite"
 )
 
 func Open() *sql.DB {
-	db, err := sql.Open("sqlite", "../database.db")
+	driver := "sqlite"
+	dsn := "../database.db"
+
+	if databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL")); databaseURL != "" {
+		driver = "pgx"
+		dsn = databaseURL
+		log.Println("Database mode: PostgreSQL (Neon)")
+	} else {
+		log.Println("Database mode: SQLite lokal")
+	}
+
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		log.Fatal("Gagal membuka database:", err)
 	}
@@ -21,6 +35,11 @@ func Open() *sql.DB {
 }
 
 func Init(db *sql.DB) {
+	if strings.TrimSpace(os.Getenv("DATABASE_URL")) != "" {
+		log.Println("PostgreSQL aktif: schema dikelola oleh database.postgres.sql")
+		return
+	}
+
 	schema := `
 	PRAGMA foreign_keys = ON;
 

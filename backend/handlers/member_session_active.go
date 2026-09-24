@@ -32,7 +32,7 @@ func (h *MemberActiveSessionHandler) Get(w http.ResponseWriter, r *http.Request,
                         COALESCE(client_ip, ''),
                         COALESCE(client_mac, '')
                 FROM sessions
-                WHERE user_id = ?
+                WHERE user_id = $1
                   AND status = 'ONLINE'
                 ORDER BY started_at DESC
         `, userID)

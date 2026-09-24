@@ -118,17 +118,20 @@ func (h *MemberHandler) Create(w http.ResponseWriter, r *http.Request) {
 		accessEnd = t
 	}
 
-	result, err := tx.Exec(`
-		INSERT INTO users
-			(role_id, username, password_hash, full_name, email, status)
-		VALUES (?, ?, ?, ?, ?, 'ACTIVE')
-	`,
+	var userID64 int64
+
+	err = tx.QueryRow(`
+                INSERT INTO users
+                        (role_id, username, password_hash, full_name, email, status)
+                VALUES ($1, $2, $3, $4, $5, 'ACTIVE')
+                RETURNING id
+        `,
 		roleID,
 		req.Username,
 		passwordHash,
 		req.FullName,
 		nullString(req.Email),
-	)
+	).Scan(&userID64)
 
 	if err != nil {
 		writeJSON(w, http.StatusConflict, map[string]string{
@@ -138,18 +141,10 @@ func (h *MemberHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID64, err := result.LastInsertId()
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{
-			"status": "DATABASE_ERROR",
-		})
-		return
-	}
-
 	_, err = tx.Exec(`
 		INSERT INTO members
 			(user_id, member_code, access_start, access_end, status)
-		VALUES (?, ?, ?, ?, 'ACTIVE')
+		VALUES ($1, $2, $3, $4, 'ACTIVE')
 	`,
 		userID64,
 		req.MemberCode,
@@ -309,7 +304,7 @@ func (h *MemberHandler) Detail(w http.ResponseWriter, r *http.Request) {
 			m.status
 		FROM members m
 		JOIN users u ON u.id = m.user_id
-		WHERE m.id = ?
+		WHERE m.id = $1
 	`, id).Scan(
 		&member.ID,
 		&member.UserID,

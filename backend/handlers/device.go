@@ -149,12 +149,14 @@ func (h *DeviceHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.DB.Exec(`
-		INSERT INTO devices
-		(name, device_type, vendor, model, ip_address,
-		 mac_address, api_endpoint, status)
-		VALUES (?, ?, ?, ?, ?, ?, ?, 'UNKNOWN')
-	`,
+	var id int64
+	err := h.DB.QueryRow(`
+                INSERT INTO devices
+                (name, device_type, vendor, model, ip_address,
+                 mac_address, api_endpoint, status)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, 'UNKNOWN')
+                RETURNING id
+        `,
 		input.Name,
 		input.DeviceType,
 		input.Vendor,
@@ -162,7 +164,7 @@ func (h *DeviceHandler) Create(w http.ResponseWriter, r *http.Request) {
 		input.IPAddress,
 		input.MACAddress,
 		input.APIEndpoint,
-	)
+	).Scan(&id)
 
 	if err != nil {
 		writeDeviceJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -171,8 +173,6 @@ func (h *DeviceHandler) Create(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
-	id, _ := result.LastInsertId()
 
 	writeDeviceJSON(w, http.StatusCreated, map[string]interface{}{
 		"status":  "OK",
@@ -203,7 +203,7 @@ func (h *DeviceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := h.DB.Exec(
-		"DELETE FROM devices WHERE id = ?",
+		"DELETE FROM devices WHERE id = $1",
 		id,
 	)
 
@@ -288,14 +288,14 @@ func (h *DeviceHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.DB.Exec(`
 		UPDATE devices
-		SET name = ?,
-		    device_type = ?,
-		    vendor = ?,
-		    model = ?,
-		    ip_address = ?,
-		    mac_address = ?,
-		    api_endpoint = ?
-		WHERE id = ?
+            SET name = $1,
+                device_type = $2,
+                vendor = $3,
+                model = $4,
+                ip_address = $5,
+                mac_address = $6,
+                api_endpoint = $7
+            WHERE id = $8
 	`,
 		input.Name,
 		input.DeviceType,

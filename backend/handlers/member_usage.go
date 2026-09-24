@@ -60,8 +60,8 @@ func (h *MemberUsageHandler) Record(w http.ResponseWriter, r *http.Request, user
 	err := h.DB.QueryRow(`
 		SELECT status
 		FROM sessions
-		WHERE id = ?
-		  AND user_id = ?
+            WHERE id = $1
+              AND user_id = $2
 	`, req.SessionID, userID).Scan(&sessionStatus)
 
 	if err == sql.ErrNoRows {
@@ -98,29 +98,24 @@ func (h *MemberUsageHandler) Record(w http.ResponseWriter, r *http.Request, user
 
 	totalBytes := req.UploadBytes + req.DownloadBytes
 
-	result, err := h.DB.Exec(`
-		INSERT INTO usage_logs (
-			session_id,
-			upload_bytes,
-			download_bytes,
-			total_bytes
-		)
-		VALUES (?, ?, ?, ?)
-	`,
+	var id int64
+
+	err = h.DB.QueryRow(`
+                INSERT INTO usage_logs (
+                        session_id,
+                        upload_bytes,
+                        download_bytes,
+                        total_bytes
+                )
+                VALUES ($1, $2, $3, $4)
+                RETURNING id
+        `,
 		req.SessionID,
 		req.UploadBytes,
 		req.DownloadBytes,
 		totalBytes,
-	)
+	).Scan(&id)
 
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{
-			"status": "DATABASE_ERROR",
-		})
-		return
-	}
-
-	id, err := result.LastInsertId()
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{
 			"status": "DATABASE_ERROR",
@@ -159,7 +154,7 @@ func (h *MemberUsageHandler) History(w http.ResponseWriter, r *http.Request, use
 			ul.recorded_at
 		FROM usage_logs ul
 		INNER JOIN sessions s ON s.id = ul.session_id
-		WHERE s.user_id = ?
+		WHERE s.user_id = $1
 	`
 
 	args := []interface{}{userID}
@@ -174,7 +169,7 @@ func (h *MemberUsageHandler) History(w http.ResponseWriter, r *http.Request, use
 			return
 		}
 
-		query += " AND ul.session_id = ?"
+		query += " AND ul.session_id = $2"
 		args = append(args, sessionID)
 	}
 
