@@ -3,204 +3,170 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>WiFi Management - Coworking Space</title>
-
+<meta name="theme-color" content="#071a33">
+<title>KP WiFi Management | PT Serpong Mas Telematika</title>
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+:root{--navy:#071a33;--blue:#1677e8;--soft:#f4f8fc;--text:#10233f;--muted:#64748b;--line:#dce7f2}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--soft);line-height:1.6}
+a{text-decoration:none;color:inherit}img{display:block;max-width:100%}
+
+/* HEADER: satu-satunya logo SMTEL */
+.site-header{background:#fff;border-bottom:1px solid #e8eef5;position:sticky;top:0;z-index:100}
+.header-inner{width:min(1240px,calc(100% - 40px));min-height:78px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand img{width:205px;height:56px;object-fit:contain;object-position:left center}
+.online{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;background:#ecfbf2;color:#147a45;font-size:12px;font-weight:800;white-space:nowrap}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#24b56b;box-shadow:0 0 0 4px rgba(36,181,107,.12)}
+
+/* HERO */
+.hero{background:radial-gradient(circle at 85% 20%,rgba(74,163,255,.20),transparent 30%),linear-gradient(135deg,#061a33 0%,#0a2b53 55%,#10447d 100%);color:#fff}
+.hero-inner{width:min(1240px,calc(100% - 40px));min-height:390px;margin:auto;display:grid;grid-template-columns:1fr;align-items:center;padding:68px 0}
+.eyebrow{display:inline-flex;padding:8px 13px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);border-radius:999px;font-size:12px;font-weight:800}
+.hero h1{margin-top:20px;font-size:clamp(38px,4.5vw,64px);line-height:1.03;letter-spacing:-1.8px}
+.hero h1 span{color:#58a9ff}.hero-copy{max-width:670px;margin-top:20px;color:#c9d8e9;font-size:17px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:0 19px;border-radius:13px;font-weight:800;font-size:14px;transition:.2s ease}.btn:hover{transform:translateY(-2px)}
+.btn-primary{background:#fff;color:#1265b8}.btn-secondary{color:#fff;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.07)}
+
+/* ACCESS: satu tempat untuk seluruh sesi akses */
+.section{width:min(1240px,calc(100% - 40px));margin:auto;padding:62px 0}
+.section-head{text-align:center;max-width:760px;margin:0 auto 35px}
+.kicker{color:var(--blue);font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+.section h2{margin-top:8px;font-size:clamp(28px,3vw,40px);line-height:1.15}.section-head p{margin-top:10px;color:var(--muted);font-size:14px}
+.access-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.access-card{min-height:190px;padding:27px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 18px 50px rgba(15,44,78,.10);transition:.2s ease}
+.access-card:hover{transform:translateY(-3px)}.access-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:#edf6ff;font-size:23px}
+.access-card h3{margin-top:16px;font-size:21px}.access-card p{margin-top:6px;color:var(--muted);font-size:13px}.access-link{display:inline-flex;margin-top:15px;color:#1172d3;font-size:13px;font-weight:900}
+
+/* COMPANY PROFILE */
+.company{background:#fff;border-top:1px solid #e8eef5;border-bottom:1px solid #e8eef5}
+.profile-wrap{position:relative;width:min(1120px,100%);margin:auto}
+.carousel{position:relative;overflow:hidden;height:390px;border-radius:26px;background:#071a33;box-shadow:0 22px 55px rgba(7,26,51,.16)}
+.track{display:flex;width:100%;height:100%;transition:transform .65s cubic-bezier(.22,.61,.36,1);will-change:transform}
+.slide{flex:0 0 100%;width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;gap:25px;align-items:center;padding:32px 62px;color:#fff}
+.slide-copy{max-width:500px}.slide .kicker{color:#74baff}.slide h3{margin-top:9px;font-size:clamp(27px,3vw,39px);line-height:1.12}.slide p{margin-top:12px;color:#c7d7e8;font-size:14px}
+.slide-media{height:230px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+.slide-media img{width:100%;height:100%;object-fit:contain}
+.nav{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.20);background:rgba(4,22,45,.55);color:#fff;cursor:pointer;font-size:20px;display:grid;place-items:center}
+.nav:hover{background:rgba(4,22,45,.8)}.nav.prev{left:16px}.nav.next{right:16px}
+.dots{position:absolute;left:50%;bottom:17px;transform:translateX(-50%);display:flex;gap:7px;z-index:5}
+.dot{width:8px;height:8px;border:0;border-radius:999px;background:rgba(255,255,255,.42);cursor:pointer;transition:.25s}.dot.active{width:24px;background:#fff}
+
+/* FOOTER: tanpa logo */
+footer{background:#061527;color:#fff;padding:42px 0 20px}
+.footer-inner{width:min(1240px,calc(100% - 40px));margin:auto;display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:45px}
+.footer-col h4{font-size:13px;margin-bottom:10px}.footer-col p,.footer-col li{color:#9fb1c6;font-size:12px}.footer-col ul{list-style:none}.footer-col li{margin:5px 0}
+.footer-bottom{width:min(1240px,calc(100% - 40px));margin:28px auto 0;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);color:#7f92a8;font-size:11px;text-align:center}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+ .hero-inner{grid-template-columns:1fr;min-height:auto;padding:52px 0}
+ .slide{grid-template-columns:1fr;padding:35px 52px}.slide-media{height:220px;order:-1}.carousel{height:560px}
+ .footer-inner{grid-template-columns:1fr 1fr}
 }
-
-body {
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e3a8a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: #111827;
-}
-
-.container {
-    width: 100%;
-    max-width: 950px;
-}
-
-.header {
-    text-align: center;
-    color: white;
-    margin-bottom: 28px;
-}
-
-.header h1 {
-    font-size: 32px;
-    margin-bottom: 8px;
-}
-
-.header p {
-    color: #dbeafe;
-    font-size: 15px;
-}
-
-.cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-}
-
-.card {
-    background: white;
-    border-radius: 18px;
-    padding: 26px;
-    box-shadow: 0 12px 35px rgba(0,0,0,.20);
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(0,0,0,.25);
-}
-
-.icon {
-    font-size: 34px;
-    margin-bottom: 12px;
-}
-
-.card h2 {
-    font-size: 21px;
-    margin-bottom: 8px;
-}
-
-.card p {
-    color: #6b7280;
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 44px;
-    margin-bottom: 18px;
-}
-
-button {
-    width: 100%;
-    border: none;
-    border-radius: 10px;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    background: #2563eb;
-    color: white;
-}
-
-button:hover {
-    opacity: .9;
-}
-
-.guest button {
-    background: #059669;
-}
-
-.footer {
-    text-align: center;
-    color: #bfdbfe;
-    font-size: 12px;
-    margin-top: 22px;
-}
-
-@media (max-width: 650px) {
-    .cards {
-        grid-template-columns: 1fr;
-    }
-
-    .header h1 {
-        font-size: 26px;
-    }
+@media(max-width:640px){
+ .header-inner{width:calc(100% - 24px);min-height:66px}.brand img{width:175px;height:48px}.online{padding:7px 10px;font-size:10px}
+ .hero-inner,.section{width:calc(100% - 24px)}.hero-inner{padding:40px 0}.hero h1{font-size:40px;letter-spacing:-1.2px}.hero-copy{font-size:14px}
+ .btn{width:100%}
+ .section{padding:58px 0}.access-grid{grid-template-columns:1fr}.access-card{min-height:auto;padding:23px}
+ .carousel{height:500px;border-radius:20px}.slide{padding:28px 38px 48px;display:flex;flex-direction:column;justify-content:center;gap:20px}
+ .slide-media{width:100%;height:175px;flex:none}.slide h3{font-size:27px}.slide p{font-size:13px}
+ .nav{width:36px;height:36px;font-size:17px}.nav.prev{left:10px}.nav.next{right:10px}
+ .footer-inner{width:calc(100% - 24px);grid-template-columns:1fr;gap:22px}.footer-bottom{width:calc(100% - 24px)}
 }
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<header class="site-header">
+ <div class="header-inner">
+  <a class="brand" href="/"><img src="/assets/smtel-logo.png" alt="PT Serpong Mas Telematika"></a>
+  <div class="online"><span class="online-dot"></span>Sistem Online</div>
+ </div>
+</header>
 
-    <div class="header">
-        <h1>WiFi Management System</h1>
-        <p>Coworking Space Management & Wi-Fi Access Control</p>
-    </div>
-
-    <div class="cards">
-
-        <!-- GUEST -->
-        <div class="card guest">
-            <div class="icon">🌐</div>
-            <h2>Guest Wi-Fi</h2>
-            <p>
-                Akses Wi-Fi untuk tamu dengan sesi penggunaan
-                dan pencatatan durasi akses.
-            </p>
-
-            <button onclick="location.href='/guest/'">
-                Masuk sebagai Guest
-            </button>
-        </div>
-
-        <!-- MEMBER -->
-        <div class="card">
-            <div class="icon">👤</div>
-            <h2>Member</h2>
-            <p>
-                Login member untuk melihat status akses,
-                sesi aktif, hak akses, dan penggunaan Wi-Fi.
-            </p>
-
-            <button onclick="loginAs('MEMBER')">
-                Login Member
-            </button>
-        </div>
-
-        <!-- ADMIN -->
-        <div class="card">
-            <div class="icon">🛡️</div>
-            <h2>Admin</h2>
-            <p>
-                Pengelolaan member, guest, teknisi,
-                perangkat, akses Wi-Fi, dan audit log.
-            </p>
-
-            <button onclick="loginAs('ADMIN')">
-                Login Admin
-            </button>
-        </div>
-
-        <!-- TEKNISI -->
-        <div class="card">
-            <div class="icon">🔧</div>
-            <h2>Teknisi</h2>
-            <p>
-                Monitoring perangkat jaringan,
-                status perangkat, dan informasi teknis.
-            </p>
-
-            <button onclick="loginAs('TECHNICIAN')">
-                Login Teknisi
-            </button>
-        </div>
-
-    </div>
-
-    <div class="footer">
-        Sistem Manajemen Akses Wi-Fi • Coworking Space
-    </div>
-
+<section class="hero">
+ <div class="hero-inner">
+  <div>
+   <span class="eyebrow">● WIFI MANAGEMENT PORTAL</span>
+   <h1>Selamat Datang di<br><span>WiFi Management</span></h1>
+   <p class="hero-copy">Portal akses jaringan Wi-Fi untuk mendukung pengelolaan pengguna, autentikasi, hak akses, session, dan penggunaan jaringan secara lebih terstruktur.</p>
 </div>
+ </div>
+</section>
+
+<section class="section">
+ <div class="section-head">
+  <div class="kicker">Access Portal</div>
+  <h2>Akses Wi-Fi</h2>
+  <p>Satu tempat untuk memilih akses Guest atau masuk sebagai pengguna terdaftar.</p>
+ </div>
+ <div class="access-grid">
+  <a class="access-card" href="/guest/">
+   <div class="access-icon">👤</div><h3>Guest Wi-Fi</h3>
+   <p>Akses internet untuk tamu atau pengunjung selama berada di lingkungan perusahaan.</p>
+   <span class="access-link">Masuk sebagai Guest →</span>
+  </a>
+  <a class="access-card" href="/login/">
+   <div class="access-icon">🔐</div><h3>Login Pengguna</h3>
+   <p>Satu halaman login untuk Member, Staff, Admin, dan Teknisi. Role menentukan dashboard setelah login.</p>
+   <span class="access-link">Login Pengguna →</span>
+  </a>
+ </div>
+</section>
+
+<section class="company">
+ <div class="section">
+  <div class="section-head">
+   <div class="kicker">Company Profile</div>
+   <h2>PT Serpong Mas Telematika</h2>
+   <p>Ringkasan informasi perusahaan berdasarkan situs resmi SMTEL.</p>
+  </div>
+
+  <div class="profile-wrap">
+   <div class="carousel" id="companyCarousel">
+    <div class="track" id="track">
+     <article class="slide">
+      <div class="slide-copy"><div class="kicker">Profil Perusahaan</div><h3>Reliable, Neutral and Trusted Fiber Optic Network Provider</h3><p>PT Serpong Mas Telematika merupakan penyedia jaringan fiber optic yang merencanakan, membangun, dan mengelola jaringan fiber optic.</p></div>
+      <div class="slide-media"><img src="https://smtel.co.id/whebufab/2024/04/ftth.png" alt="Infrastruktur fiber optic SMTEL"></div>
+     </article>
+     <article class="slide">
+      <div class="slide-copy"><div class="kicker">Infrastruktur</div><h3>Jaringan Fiber Optic & Infrastruktur</h3><p>SMTEL menyediakan infrastruktur jaringan untuk kebutuhan layanan internet melalui teknologi Metro Ethernet dan GPON (FTTx).</p></div>
+      <div class="slide-media"><img src="https://smtel.co.id/whebufab/2020/12/data-analysis2.png" alt="Teknologi dan analisis SMTEL"></div>
+     </article>
+     <article class="slide">
+      <div class="slide-copy"><div class="kicker">Kapabilitas</div><h3>Network Provider dengan Infrastruktur Terukur</h3><p>Situs resmi SMTEL mencantumkan kapasitas jaringan hingga 100 Gbps serta dukungan layanan 24/7.</p></div>
+      <div class="slide-media"><img src="https://smtel.co.id/whebufab/2022/03/bnr-h15-ly-824x881.png" alt="Layanan dan konektivitas SMTEL"></div>
+     </article>
+     <article class="slide">
+      <div class="slide-copy"><div class="kicker">Layanan</div><h3>Infrastruktur untuk Penyedia Layanan Internet</h3><p>Jaringan yang disediakan SMTEL dapat digunakan oleh penyedia layanan internet untuk mengirimkan layanan data kepada pelanggan.</p></div>
+      <div class="slide-media"><img src="https://smtel.co.id/whebufab/2024/04/ftth.png" alt="Fiber optic SMTEL"></div>
+     </article>
+    </div>
+    <button class="nav prev" id="prev" aria-label="Slide sebelumnya">‹</button>
+    <button class="nav next" id="next" aria-label="Slide berikutnya">›</button>
+    <div class="dots" id="dots"></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<footer>
+ <div class="footer-inner">
+  <div class="footer-col"><h4>KP WiFi Management</h4><p>Portal manajemen akses Wi-Fi untuk mendukung pengelolaan pengguna dan session jaringan.</p></div>
+  <div class="footer-col"><h4>Portal</h4><ul><li>Guest Wi-Fi</li><li>Login Pengguna</li><li>Member / Staff</li><li>Admin & Teknisi</li></ul></div>
+  <div class="footer-col"><h4>Informasi SMTEL</h4><p>Jl. Pahlawan Seribu Komp. Ruko Golden Road Blok C26 No. 100-108, Lengkong Wetan, Serpong, Tangerang Selatan, Banten 15310</p><p style="margin-top:7px">+6221 8062 5558 · info@smtel.co.id</p></div>
+ </div>
+ <div class="footer-bottom">Deployed by Tim KP UNPAM · Ridho • Rifki • Agung</div>
+</footer>
 
 <script>
-function loginAs(role) {
-    window.location.href = "/login/?role=" + encodeURIComponent(role);
-}
+(()=>{const track=document.getElementById("track"),carousel=document.getElementById("companyCarousel"),slides=[...track.children],dots=document.getElementById("dots");let index=0,timer;
+slides.forEach((_,i)=>{const d=document.createElement("button");d.className="dot"+(i===0?" active":"");d.type="button";d.setAttribute("aria-label","Buka slide "+(i+1));d.onclick=()=>{go(i);restart()};dots.appendChild(d)});
+function go(i){index=(i+slides.length)%slides.length;track.style.transform=`translate3d(-${index*100}%,0,0)`;[...dots.children].forEach((d,n)=>d.classList.toggle("active",n===index))}
+function start(){timer=setInterval(()=>go(index+1),5000)}function stop(){clearInterval(timer)}function restart(){stop();start()}
+document.getElementById("prev").onclick=()=>{go(index-1);restart()};document.getElementById("next").onclick=()=>{go(index+1);restart()};
+carousel.onmouseenter=stop;carousel.onmouseleave=start;carousel.addEventListener("touchstart",stop,{passive:true});carousel.addEventListener("touchend",start,{passive:true});start()})();
 </script>
-
 </body>
 </html>

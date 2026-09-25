@@ -290,13 +290,6 @@ func (h *GuestHandler) ExpireSessions() error {
 }
 
 func (h *GuestHandler) AdminList(w http.ResponseWriter, r *http.Request) {
-	if err := h.ExpireSessions(); err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "Gagal memperbarui status session Guest",
-		})
-		return
-	}
 	if r.Method != http.MethodGet {
 		writeGuestJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{
 			"status": "ERROR",
@@ -304,21 +297,29 @@ func (h *GuestHandler) AdminList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.ExpireSessions(); err != nil {
+		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+			"status":  "ERROR",
+			"message": "Gagal memperbarui status session Guest",
+		})
+		return
+	}
+
 	rows, err := h.DB.Query(`
-                SELECT
-                        g.id,
-                        g.name,
-                        g.access_start,
-                        g.access_end,
-                        g.status,
-                        COALESCE(s.id, 0),
-                        COALESCE(s.client_ip, ''),
-                        COALESCE(s.client_mac, ''),
-                        COALESCE(s.status, '')
-                FROM guests g
-                LEFT JOIN sessions s ON s.guest_id = g.id
-                ORDER BY g.id DESC
-        `)
+		SELECT
+			g.id,
+			g.name,
+			COALESCE(g.access_start::text, ''),
+			COALESCE(g.access_end::text, ''),
+			g.status,
+			COALESCE(s.id, 0),
+			COALESCE(s.client_ip, ''),
+			COALESCE(s.client_mac, ''),
+			COALESCE(s.status, '')
+		FROM guests g
+		LEFT JOIN sessions s ON s.guest_id = g.id
+		ORDER BY g.id DESC
+	`)
 
 	if err != nil {
 		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -345,13 +346,12 @@ func (h *GuestHandler) AdminList(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var g Guest
-		var accessStart, accessEnd sql.NullString
 
 		err := rows.Scan(
 			&g.ID,
 			&g.Name,
-			&accessStart,
-			&accessEnd,
+			&g.AccessStart,
+			&g.AccessEnd,
 			&g.Status,
 			&g.SessionID,
 			&g.ClientIP,
@@ -360,15 +360,11 @@ func (h *GuestHandler) AdminList(w http.ResponseWriter, r *http.Request) {
 		)
 
 		if err != nil {
-			continue
-		}
-
-		if accessStart.Valid {
-			g.AccessStart = accessStart.String
-		}
-
-		if accessEnd.Valid {
-			g.AccessEnd = accessEnd.String
+			writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"status":  "ERROR",
+				"message": err.Error(),
+			})
+			return
 		}
 
 		guests = append(guests, g)

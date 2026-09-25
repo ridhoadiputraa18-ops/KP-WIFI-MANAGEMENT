@@ -2257,7 +2257,7 @@ async function loadGuestData(){
     if(durationElement){
 
       const duration = Number(
-        config.guest_duration_minutes
+        config.guest_duration ?? config.guest_duration_minutes
       );
 
       durationElement.textContent =
@@ -2270,7 +2270,7 @@ async function loadGuestData(){
     if(statusElement){
 
       statusElement.textContent =
-        config.status || "-";
+        config.config_status ?? config.status ?? "-";
 
     }
 

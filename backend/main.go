@@ -161,6 +161,27 @@ func main() {
 	})))
 
 	http.Handle("/api/admin/guests", auth.RequireRole("ADMIN", http.HandlerFunc(guestAPI.AdminList)))
+
+    http.Handle("/api/admin/session-check", auth.RequireRole("ADMIN", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        user, ok := middleware.CurrentUser(r)
+
+        w.Header().Set("Content-Type", "application/json")
+
+        if !ok {
+            w.WriteHeader(http.StatusUnauthorized)
+            _ = json.NewEncoder(w).Encode(map[string]interface{}{
+                "status": "UNAUTHORIZED",
+            })
+            return
+        }
+
+        _ = json.NewEncoder(w).Encode(map[string]interface{}{
+            "status":   "OK",
+            "user_id":  user.ID,
+            "username": user.Username,
+            "role":      user.Role,
+        })
+    })))
 	http.Handle("/api/admin/wifi-config", auth.RequireRole("ADMIN", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			guestAPI.AdminConfig(w, r)
