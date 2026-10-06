@@ -261,5 +261,55 @@ func Init(db *sql.DB) {
         }
 
 
-	log.Println("Database berhasil diinisialisasi.")
+
+        // Migrasi SQLite untuk data Guest publik.
+        var companyColumnCount, purposeColumnCount int
+
+        err = db.QueryRow(`
+                SELECT COUNT(*)
+                FROM pragma_table_info('guests')
+                WHERE name = 'company'
+        `).Scan(&companyColumnCount)
+
+        if err != nil {
+                log.Fatal("Gagal mengecek kolom company:", err)
+        }
+
+        if companyColumnCount == 0 {
+                _, err = db.Exec(`
+                        ALTER TABLE guests
+                        ADD COLUMN company TEXT
+                `)
+
+                if err != nil {
+                        log.Fatal("Gagal menambahkan kolom company:", err)
+                }
+
+                log.Println("Migrasi SQLite: company berhasil ditambahkan.")
+        }
+
+        err = db.QueryRow(`
+                SELECT COUNT(*)
+                FROM pragma_table_info('guests')
+                WHERE name = 'purpose'
+        `).Scan(&purposeColumnCount)
+
+        if err != nil {
+                log.Fatal("Gagal mengecek kolom purpose:", err)
+        }
+
+        if purposeColumnCount == 0 {
+                _, err = db.Exec(`
+                        ALTER TABLE guests
+                        ADD COLUMN purpose TEXT
+                `)
+
+                if err != nil {
+                        log.Fatal("Gagal menambahkan kolom purpose:", err)
+                }
+
+                log.Println("Migrasi SQLite: purpose berhasil ditambahkan.")
+        }
+
+log.Println("Database berhasil diinisialisasi.")
 }
