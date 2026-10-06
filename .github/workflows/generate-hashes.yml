@@ -20,7 +20,7 @@ jobs:
         working-directory: tools/hashgen
         run: go run .
 
-      - name: Generate hash file
+      - name: Save hashes
         working-directory: tools/hashgen
         run: go run . > hashes.txt
 
