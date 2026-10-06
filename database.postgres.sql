@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS members (
 CREATE TABLE IF NOT EXISTS guests (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
+    company TEXT,
+    purpose TEXT,
     guest_account_id BIGINT REFERENCES guest_accounts(id) ON DELETE SET NULL,
     access_start TIMESTAMPTZ,
     access_end TIMESTAMPTZ,
