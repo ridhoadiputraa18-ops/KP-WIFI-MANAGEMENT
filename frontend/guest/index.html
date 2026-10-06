@@ -2,299 +2,254 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Guest Wi-Fi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guest WiFi - KP WiFi Management</title>
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;
- min-height:100vh;
- font-family:Arial,sans-serif;
- background:linear-gradient(135deg,#0f172a,#1e3a8a);
- display:flex;
- align-items:center;
- justify-content:center;
- padding:20px;
- color:#fff
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f4f7fb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  color:#1f2937
 }
 .card{
- width:100%;
- max-width:430px;
- background:#fff;
- color:#172033;
- border-radius:22px;
- padding:28px;
- box-shadow:0 20px 50px #0006
+  width:100%;
+  max-width:500px;
+  background:#fff;
+  border-radius:18px;
+  padding:30px;
+  box-shadow:0 12px 35px rgba(0,0,0,.10)
 }
 .logo{
- width:64px;
- height:64px;
- border-radius:18px;
- background:#2563eb;
- color:white;
- display:flex;
- align-items:center;
- justify-content:center;
- font-size:30px;
- margin-bottom:18px
+  display:block;
+  max-width:170px;
+  max-height:70px;
+  object-fit:contain;
+  margin:0 auto 20px
 }
-h1{margin:0 0 8px;font-size:28px}
-.desc{color:#64748b;margin-bottom:24px;line-height:1.5}
-label{
- display:block;
- font-weight:bold;
- margin:14px 0 7px
+h1{
+  margin:0 0 8px;
+  text-align:center;
+  font-size:25px
 }
-input{
- width:100%;
- padding:14px;
- border:1px solid #cbd5e1;
- border-radius:12px;
- font-size:16px;
- outline:none
+.subtitle{
+  text-align:center;
+  color:#6b7280;
+  margin-bottom:22px
 }
-input:focus{border-color:#2563eb}
-button{
- width:100%;
- border:0;
- padding:15px;
- margin-top:20px;
- border-radius:12px;
- background:#2563eb;
- color:white;
- font-size:16px;
- font-weight:bold;
- cursor:pointer
-}
-button:disabled{opacity:.6}
 .info{
- background:#eff6ff;
- border-radius:12px;
- padding:14px;
- margin-top:18px;
- font-size:14px;
- color:#1e40af
+  background:#eef6ff;
+  border:1px solid #cfe5ff;
+  border-radius:10px;
+  padding:12px 14px;
+  margin-bottom:20px;
+  font-size:14px;
+  line-height:1.5
 }
-.status{
- display:none;
- margin-top:18px;
- padding:14px;
- border-radius:12px;
- background:#ecfdf5;
- color:#166534
+label{
+  display:block;
+  margin:15px 0 7px;
+  font-weight:600
+}
+input,textarea{
+  width:100%;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  padding:12px 13px;
+  font-size:15px;
+  outline:none
+}
+input:focus,textarea:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.10)
+}
+textarea{
+  min-height:110px;
+  resize:vertical
+}
+button{
+  width:100%;
+  margin-top:22px;
+  border:0;
+  border-radius:10px;
+  padding:13px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  background:#2563eb;
+  color:#fff
+}
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed
+}
+#message{
+  display:none;
+  margin-top:18px;
+  padding:13px;
+  border-radius:10px;
+  line-height:1.5
+}
+.success{
+  display:block!important;
+  background:#ecfdf5;
+  border:1px solid #a7f3d0;
+  color:#065f46
 }
 .error{
- display:none;
- margin-top:18px;
- padding:14px;
- border-radius:12px;
- background:#fef2f2;
- color:#991b1b
-}
-.back{
- display:block;
- text-align:center;
- margin-top:18px;
- color:#2563eb;
- text-decoration:none
+  display:block!important;
+  background:#fef2f2;
+  border:1px solid #fecaca;
+  color:#991b1b
 }
 .small{
- text-align:center;
- color:#64748b;
- font-size:12px;
- margin-top:20px
+  text-align:center;
+  margin-top:18px;
+  font-size:12px;
+  color:#9ca3af
 }
 </style>
 </head>
 
 <body>
 <div class="card">
-  <div class="logo">📶</div>
 
-  <h1>Guest Wi-Fi</h1>
-  <div class="desc">
-    Selamat datang. Silakan login menggunakan akun Guest Wi-Fi yang telah diberikan.
-  </div>
+<img
+  class="logo"
+  src="/assets/smtel-logo.png"
+  alt="SMTEL"
+  onerror="this.style.display='none'"
+>
 
-  <div class="info">
-    🔐 Akses Wi-Fi sementara untuk pengunjung.
-  </div>
+<h1>Guest WiFi</h1>
 
-  <form id="guestForm">
-    <label for="username">Username</label>
-    <input
-      id="username"
-      name="username"
-      type="text"
-      placeholder="Masukkan username"
-      maxlength="100"
-      required
-      autocomplete="username"
-    >
+<div class="subtitle">
+  Silakan isi data sebelum menggunakan akses Guest.
+</div>
 
-    <label for="password">Password</label>
-    <input
-      id="password"
-      name="password"
-      type="password"
-      placeholder="Masukkan password"
-      maxlength="200"
-      required
-      autocomplete="current-password"
-    >
+<div class="info">
+  👋 Akses Guest tidak memerlukan username dan password portal.
+  Silakan isi data berikut untuk pencatatan akses WiFi.
+</div>
 
-    <button id="submitBtn" type="submit">
-      Login & Mulai Akses
-    </button>
-  </form>
+<form id="guestForm">
 
-  <div id="status" class="status"></div>
-  <div id="error" class="error"></div>
+<label for="name">Atas Nama</label>
+<input
+  id="name"
+  name="name"
+  type="text"
+  placeholder="Nama lengkap"
+  autocomplete="name"
+  required
+>
 
-  <a class="back" href="/">← Kembali</a>
+<label for="company">PT / Instansi</label>
+<input
+  id="company"
+  name="company"
+  type="text"
+  placeholder="Nama PT / Instansi"
+  required
+>
 
-  <div class="small">
-    Coworking Space Wi-Fi Management
-  </div>
+<label for="purpose">Keperluan</label>
+<textarea
+  id="purpose"
+  name="purpose"
+  placeholder="Contoh: Meeting, kunjungan, maintenance, dll."
+  required
+></textarea>
+
+<button id="submitBtn" type="submit">
+  Mulai Akses Wi-Fi
+</button>
+
+</form>
+
+<div id="message"></div>
+
+<div class="small">
+  KP WiFi Management
+</div>
+
 </div>
 
 <script>
 const form = document.getElementById("guestForm");
-const usernameInput = document.getElementById("username");
-const passwordInput = document.getElementById("password");
-const button = document.getElementById("submitBtn");
-const statusBox = document.getElementById("status");
-const errorBox = document.getElementById("error");
+const submitBtn = document.getElementById("submitBtn");
+const message = document.getElementById("message");
 
-function showError(message){
-  errorBox.textContent = message;
-  errorBox.style.display = "block";
-  statusBox.style.display = "none";
-}
-
-function showStatus(message){
-  statusBox.textContent = message;
-  statusBox.style.display = "block";
-  errorBox.style.display = "none";
-}
-
-async function loadConfig(){
-  try{
-    const res = await fetch("/api/guest/config");
-
-    if(!res.ok) return;
-
-    const data = await res.json();
-
-    if(data && data.name){
-      document.title = data.name + " - Guest Wi-Fi";
-    }
-  }catch(e){
-    console.log("config belum tersedia");
-  }
-}
-
-async function apiRequest(url, options = {}){
-  const res = await fetch(url, {
-    credentials: "same-origin",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
-
-  const text = await res.text();
-
-  let data = {};
-
-  try{
-    data = JSON.parse(text);
-  }catch(e){}
-
-  if(!res.ok){
-    throw new Error(
-      data.message ||
-      data.error ||
-      "Permintaan gagal."
-    );
-  }
-
-  return data;
+function showMessage(text, type){
+  message.textContent = text;
+  message.className = type;
 }
 
 form.addEventListener("submit", async function(e){
   e.preventDefault();
 
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value;
+  const name = document.getElementById("name").value.trim();
+  const company = document.getElementById("company").value.trim();
+  const purpose = document.getElementById("purpose").value.trim();
 
-  if(!username){
-    showError("Username wajib diisi.");
-    usernameInput.focus();
+  if(!name || !company || !purpose){
+    showMessage("Semua data wajib diisi.", "error");
     return;
   }
 
-  if(!password){
-    showError("Password wajib diisi.");
-    passwordInput.focus();
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = "Login...";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Memproses...";
 
   try{
-    // ========================================================
-    // STEP 1: LOGIN GUEST ACCOUNT
-    // ========================================================
-    const loginData = await apiRequest("/api/guest/login", {
-      method: "POST",
-      body: JSON.stringify({
-        username: username,
-        password: password
+    const response = await fetch("/api/guest/session", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        name:name,
+        company:company,
+        purpose:purpose
       })
     });
 
-    // ========================================================
-    // STEP 2: BUAT GUEST SESSION
-    // ========================================================
-    button.textContent = "Memulai akses...";
+    const data = await response.json();
 
-    const sessionData = await apiRequest("/api/guest/session", {
-      method: "POST",
-      body: JSON.stringify({})
-    });
-
-    const guestName =
-      loginData.name ||
-      sessionData.name ||
-      username;
-
-    showStatus(
-      "Login berhasil. Selamat datang, " +
-      guestName +
-      ". Sesi Guest Wi-Fi telah dimulai."
-    );
+    if(!response.ok){
+      throw new Error(data.error || "Gagal memulai akses Guest.");
+    }
 
     form.style.display = "none";
 
-  }catch(err){
-    showError(
-      err.message ||
-      "Login Guest Wi-Fi gagal."
+    let endTime = "-";
+
+    if(data.guest && data.guest.access_end){
+      endTime = new Date(
+        data.guest.access_end
+      ).toLocaleString("id-ID");
+    }
+
+    showMessage(
+      "Data berhasil dicatat. Akses Guest aktif sampai " + endTime + ".",
+      "success"
     );
 
-    passwordInput.value = "";
-    passwordInput.focus();
+  }catch(err){
+    showMessage(
+      err.message || "Terjadi kesalahan.",
+      "error"
+    );
 
-  }finally{
-    button.disabled = false;
-    button.textContent = "Login & Mulai Akses";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Mulai Akses Wi-Fi";
   }
 });
-
-loadConfig();
 </script>
+
 </body>
 </html>
