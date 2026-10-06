@@ -865,6 +865,8 @@ th{
         <tr>
           <th>ID</th>
           <th>Nama Guest</th>
+          <th>PT / Instansi</th>
+          <th>Keperluan</th>
           <th>IP</th>
           <th>MAC</th>
           <th>Mulai</th>
@@ -876,7 +878,7 @@ th{
       <tbody id="guestTableBody">
 
         <tr>
-          <td colspan="7" class="empty">
+          <td colspan="9" class="empty">
             Memuat data Guest...
           </td>
         </tr>
@@ -2275,7 +2277,7 @@ async function loadGuestData(){
     }
 
     renderGuestData(
-      guestData.guests || []
+      guestData.data || guestData.guests || []
     );
 
   }catch(error){
@@ -2308,7 +2310,7 @@ function renderGuestData(guests){
 
     body.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center;padding:24px;">
+        <td colspan="9" style="text-align:center;padding:24px;">
           Belum ada data Guest.
         </td>
       </tr>
@@ -2324,6 +2326,8 @@ function renderGuestData(guests){
     row.innerHTML = `
       <td>${guest.id ?? "-"}</td>
       <td>${guest.name ?? "-"}</td>
+      <td>${guest.company ?? "-"}</td>
+      <td>${guest.purpose ?? "-"}</td>
       <td>${guest.client_ip ?? "-"}</td>
       <td>${guest.client_mac ?? "-"}</td>
       <td>${guest.access_start ?? "-"}</td>
