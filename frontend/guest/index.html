@@ -113,7 +113,7 @@ button:disabled{opacity:.6}
 
   <h1>Guest Wi-Fi</h1>
   <div class="desc">
-    Selamat datang. Silakan masukkan nama untuk mendapatkan akses Wi-Fi tamu.
+    Selamat datang. Silakan login menggunakan akun Guest Wi-Fi yang telah diberikan.
   </div>
 
   <div class="info">
@@ -121,19 +121,30 @@ button:disabled{opacity:.6}
   </div>
 
   <form id="guestForm">
-    <label for="name">Nama Tamu</label>
+    <label for="username">Username</label>
     <input
-      id="name"
-      name="name"
+      id="username"
+      name="username"
       type="text"
-      placeholder="Masukkan nama"
+      placeholder="Masukkan username"
       maxlength="100"
       required
-      autocomplete="name"
+      autocomplete="username"
+    >
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      placeholder="Masukkan password"
+      maxlength="200"
+      required
+      autocomplete="current-password"
     >
 
     <button id="submitBtn" type="submit">
-      Mulai Akses Wi-Fi
+      Login & Mulai Akses
     </button>
   </form>
 
@@ -149,7 +160,8 @@ button:disabled{opacity:.6}
 
 <script>
 const form = document.getElementById("guestForm");
-const nameInput = document.getElementById("name");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
 const button = document.getElementById("submitBtn");
 const statusBox = document.getElementById("status");
 const errorBox = document.getElementById("error");
@@ -182,59 +194,103 @@ async function loadConfig(){
   }
 }
 
+async function apiRequest(url, options = {}){
+  const res = await fetch(url, {
+    credentials: "same-origin",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+
+  const text = await res.text();
+
+  let data = {};
+
+  try{
+    data = JSON.parse(text);
+  }catch(e){}
+
+  if(!res.ok){
+    throw new Error(
+      data.message ||
+      data.error ||
+      "Permintaan gagal."
+    );
+  }
+
+  return data;
+}
+
 form.addEventListener("submit", async function(e){
   e.preventDefault();
 
-  const name = nameInput.value.trim();
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
 
-  if(!name){
-    showError("Nama tamu wajib diisi.");
+  if(!username){
+    showError("Username wajib diisi.");
+    usernameInput.focus();
+    return;
+  }
+
+  if(!password){
+    showError("Password wajib diisi.");
+    passwordInput.focus();
     return;
   }
 
   button.disabled = true;
-  button.textContent = "Memproses...";
+  button.textContent = "Login...";
 
   try{
-    const res = await fetch("/api/guest/session",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        name:name
+    // ========================================================
+    // STEP 1: LOGIN GUEST ACCOUNT
+    // ========================================================
+    const loginData = await apiRequest("/api/guest/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username: username,
+        password: password
       })
     });
 
-    const text = await res.text();
+    // ========================================================
+    // STEP 2: BUAT GUEST SESSION
+    // ========================================================
+    button.textContent = "Memulai akses...";
 
-    let data = {};
+    const sessionData = await apiRequest("/api/guest/session", {
+      method: "POST",
+      body: JSON.stringify({})
+    });
 
-    try{
-      data = JSON.parse(text);
-    }catch(e){}
-
-    if(!res.ok){
-      throw new Error(
-        data.message ||
-        data.error ||
-        "Akses Guest Wi-Fi gagal."
-      );
-    }
+    const guestName =
+      loginData.name ||
+      sessionData.name ||
+      username;
 
     showStatus(
-      "Akses berhasil. Selamat datang, " +
-      name +
+      "Login berhasil. Selamat datang, " +
+      guestName +
       ". Sesi Guest Wi-Fi telah dimulai."
     );
 
     form.style.display = "none";
 
   }catch(err){
-    showError(err.message || "Terjadi kesalahan.");
+    showError(
+      err.message ||
+      "Login Guest Wi-Fi gagal."
+    );
+
+    passwordInput.value = "";
+    passwordInput.focus();
+
   }finally{
     button.disabled = false;
-    button.textContent = "Mulai Akses Wi-Fi";
+    button.textContent = "Login & Mulai Akses";
   }
 });
 

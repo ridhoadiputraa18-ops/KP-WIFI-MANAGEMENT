@@ -31,3 +31,8 @@ backend/wifi_config.key
 # Backup source files
 *.BACKUP*
 *.backup*
+.vercel
+
+backend/build/
+backup-guest-account-20261006_203704/
+frontend/guest/index.html.before-guest-login

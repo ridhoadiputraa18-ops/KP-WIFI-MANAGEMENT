@@ -14,10 +14,15 @@ func Open() *sql.DB {
 	driver := "sqlite"
 	dsn := "../database.db"
 
-	if databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL")); databaseURL != "" {
+	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
+	if databaseURL == "" {
+		databaseURL = strings.TrimSpace(os.Getenv("POSTGRES_URL"))
+	}
+
+	if databaseURL != "" {
 		driver = "pgx"
 		dsn = databaseURL
-		log.Println("Database mode: PostgreSQL (Neon)")
+		log.Println("Database mode: PostgreSQL (Supabase)")
 	} else {
 		log.Println("Database mode: SQLite lokal")
 	}
@@ -35,7 +40,7 @@ func Open() *sql.DB {
 }
 
 func Init(db *sql.DB) {
-	if strings.TrimSpace(os.Getenv("DATABASE_URL")) != "" {
+	if strings.TrimSpace(os.Getenv("DATABASE_URL")) != "" || strings.TrimSpace(os.Getenv("POSTGRES_URL")) != "" {
 		log.Println("PostgreSQL aktif: schema dikelola oleh database.postgres.sql")
 		return
 	}
@@ -75,13 +80,43 @@ func Init(db *sql.DB) {
 	CREATE TABLE IF NOT EXISTS guests (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
+             guest_account_id INTEGER,
 		access_start DATETIME,
 		access_end DATETIME,
 		status TEXT NOT NULL DEFAULT 'PENDING',
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);
 
-	CREATE TABLE IF NOT EXISTS devices (
+	CREATE TABLE IF NOT EXISTS guest_accounts (
+             id INTEGER PRIMARY KEY AUTOINCREMENT,
+             username TEXT NOT NULL UNIQUE,
+             password_hash TEXT NOT NULL,
+             full_name TEXT NOT NULL,
+             status TEXT NOT NULL DEFAULT 'ACTIVE',
+             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+     );
+
+     CREATE TABLE IF NOT EXISTS guest_auth_sessions (
+             token TEXT PRIMARY KEY,
+             guest_account_id INTEGER NOT NULL,
+             expires_at DATETIME NOT NULL,
+             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+             FOREIGN KEY (guest_account_id)
+                     REFERENCES guest_accounts(id)
+                     ON DELETE CASCADE
+     );
+
+     CREATE INDEX IF NOT EXISTS idx_guest_accounts_username
+             ON guest_accounts(username);
+
+     CREATE INDEX IF NOT EXISTS idx_guest_auth_sessions_guest
+             ON guest_auth_sessions(guest_account_id);
+
+     CREATE INDEX IF NOT EXISTS idx_guest_auth_sessions_expiry
+             ON guest_auth_sessions(expires_at);
+
+     CREATE TABLE IF NOT EXISTS devices (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
 		device_type TEXT NOT NULL,
@@ -196,6 +231,35 @@ func Init(db *sql.DB) {
 	if _, err := db.Exec(schema); err != nil {
 		log.Fatal("Gagal membuat struktur database:", err)
 	}
+
+        // Migrasi SQLite untuk database lama.
+        // Database yang dibuat sebelum fitur Guest Account
+        // belum memiliki kolom guest_account_id.
+        var guestAccountColumnCount int
+
+        err := db.QueryRow(`
+                SELECT COUNT(*)
+                FROM pragma_table_info('guests')
+                WHERE name = 'guest_account_id'
+        `).Scan(&guestAccountColumnCount)
+
+        if err != nil {
+                log.Fatal("Gagal mengecek guest_account_id:", err)
+        }
+
+        if guestAccountColumnCount == 0 {
+                _, err = db.Exec(`
+                        ALTER TABLE guests
+                        ADD COLUMN guest_account_id INTEGER
+                `)
+
+                if err != nil {
+                        log.Fatal("Gagal menambahkan guest_account_id:", err)
+                }
+
+                log.Println("Migrasi SQLite: guest_account_id berhasil ditambahkan.")
+        }
+
 
 	log.Println("Database berhasil diinisialisasi.")
 }

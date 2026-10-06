@@ -97,6 +97,7 @@ func main() {
 	// GUEST WI-FI
 	// ==========================
 	http.HandleFunc("/api/guest/config", guestAPI.Config)
+	http.HandleFunc("/api/guest/login", guestAPI.Login)
 	http.HandleFunc("/api/guest/session", guestAPI.StartSession)
 
 	// ==========================

@@ -27,6 +27,140 @@ func writeGuestJSON(w http.ResponseWriter, status int, data interface{}) {
 	_ = json.NewEncoder(w).Encode(data)
 }
 
+// POST /api/guest/login
+// Login khusus Guest Portal.
+// Akun Guest terpisah dari akun ADMIN/MEMBER/TECHNICIAN.
+func (h *GuestHandler) Login(w http.ResponseWriter, r *http.Request) {
+        if r.Method != http.MethodPost {
+                writeGuestJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Method tidak diizinkan",
+                })
+                return
+        }
+
+        var req struct {
+                Username string `json:"username"`
+                Password string `json:"password"`
+        }
+
+        if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+                writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "JSON tidak valid",
+                })
+                return
+        }
+
+        req.Username = strings.TrimSpace(req.Username)
+
+        if req.Username == "" || req.Password == "" {
+                writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Username dan password wajib diisi",
+                })
+                return
+        }
+
+        var (
+                guestID     int64
+                passwordHash string
+                fullName    string
+                status      string
+        )
+
+        err := h.DB.QueryRow(`
+                SELECT id, password_hash, full_name, status
+                FROM guest_accounts
+                WHERE username = $1
+                LIMIT 1
+        `, req.Username).Scan(
+                &guestID,
+                &passwordHash,
+                &fullName,
+                &status,
+        )
+
+        if err == sql.ErrNoRows {
+                writeGuestJSON(w, http.StatusUnauthorized, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Username atau password Guest salah",
+                })
+                return
+        }
+
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Gagal memeriksa akun Guest",
+                })
+                return
+        }
+
+        if !VerifyPassword(req.Password, passwordHash) {
+                writeGuestJSON(w, http.StatusUnauthorized, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Username atau password Guest salah",
+                })
+                return
+        }
+
+        if strings.ToUpper(status) != "ACTIVE" {
+                writeGuestJSON(w, http.StatusForbidden, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Akun Guest tidak aktif",
+                })
+                return
+        }
+
+        token, err := GenerateToken()
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Gagal membuat sesi Guest",
+                })
+                return
+        }
+
+        expires := time.Now().UTC().Add(8 * time.Hour)
+
+        _, err = h.DB.Exec(`
+                INSERT INTO guest_auth_sessions
+                        (token, guest_account_id, expires_at)
+                VALUES
+                        ($1, $2, $3)
+        `, token, guestID, expires)
+
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Gagal menyimpan sesi Guest",
+                })
+                return
+        }
+
+        http.SetCookie(w, &http.Cookie{
+                Name:     "guest_portal_session",
+                Value:    token,
+                Path:     "/",
+                HttpOnly: true,
+                Secure:   r.TLS != nil,
+                SameSite: http.SameSiteLaxMode,
+                Expires:  expires,
+                MaxAge:   8 * 60 * 60,
+        })
+
+        writeGuestJSON(w, http.StatusOK, map[string]interface{}{
+                "status":  "OK",
+                "message": "Login Guest berhasil",
+                "guest": map[string]interface{}{
+                        "id":        guestID,
+                        "username":  req.Username,
+                        "full_name": fullName,
+                },
+        })
+}
+
 // GET /api/guest/config
 // Dipakai portal Guest untuk mengetahui SSID dan durasi akses.
 // Password Wi-Fi TIDAK dikirim ke browser.
@@ -85,113 +219,150 @@ func (h *GuestHandler) Config(w http.ResponseWriter, r *http.Request) {
 // Ini mencatat sesi aplikasi; enforcement jaringan akan kita integrasikan
 // ke gateway/MikroTik pada tahap berikutnya.
 func (h *GuestHandler) StartSession(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeGuestJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "Method tidak diizinkan",
-		})
-		return
-	}
+        if r.Method != http.MethodPost {
+                writeGuestJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Method tidak diizinkan",
+                })
+                return
+        }
 
-	var req struct {
-		Name      string `json:"name"`
-		ClientIP  string `json:"client_ip"`
-		ClientMAC string `json:"client_mac"`
-	}
+        cookie, err := r.Cookie("guest_portal_session")
+        if err != nil || strings.TrimSpace(cookie.Value) == "" {
+                writeGuestJSON(w, http.StatusUnauthorized, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Silakan login sebagai Guest terlebih dahulu",
+                })
+                return
+        }
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "JSON tidak valid",
-		})
-		return
-	}
+        var (
+                guestAccountID int64
+                guestName      string
+                guestStatus    string
+        )
 
-	req.Name = strings.TrimSpace(req.Name)
-	req.ClientIP = strings.TrimSpace(req.ClientIP)
-	req.ClientMAC = strings.TrimSpace(req.ClientMAC)
+        err = h.DB.QueryRow(`
+                SELECT ga.id, ga.full_name, ga.status
+                FROM guest_auth_sessions gas
+                JOIN guest_accounts ga
+                  ON ga.id = gas.guest_account_id
+                WHERE gas.token = $1
+                  AND gas.expires_at > CURRENT_TIMESTAMP
+                LIMIT 1
+        `, cookie.Value).Scan(
+                &guestAccountID,
+                &guestName,
+                &guestStatus,
+        )
 
-	if req.Name == "" {
-		writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "Nama Guest wajib diisi",
-		})
-		return
-	}
+        if err == sql.ErrNoRows {
+                writeGuestJSON(w, http.StatusUnauthorized, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Sesi Guest tidak valid atau sudah berakhir",
+                })
+                return
+        }
 
-	if len(req.Name) > 100 {
-		writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "Nama Guest terlalu panjang",
-		})
-		return
-	}
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Gagal memeriksa sesi Guest",
+                })
+                return
+        }
 
-	if req.ClientIP != "" && net.ParseIP(req.ClientIP) == nil {
-		writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
-			"status":  "ERROR",
-			"message": "IP client tidak valid",
-		})
-		return
-	}
+        if strings.ToUpper(guestStatus) != "ACTIVE" {
+                writeGuestJSON(w, http.StatusForbidden, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "Akun Guest tidak aktif",
+                })
+                return
+        }
 
-	var duration int
+        var req struct {
+                ClientIP  string `json:"client_ip"`
+                ClientMAC string `json:"client_mac"`
+        }
 
-	err := h.DB.QueryRow(`
-		SELECT guest_duration_minutes
-		FROM wifi_configs
-		WHERE network_type = 'GUEST'
-		  AND status = 'ACTIVE'
-		ORDER BY id DESC
-		LIMIT 1
-	`).Scan(&duration)
+        if r.Body != nil {
+                if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+                        // Body kosong tetap diperbolehkan.
+                        req.ClientIP = ""
+                        req.ClientMAC = ""
+                }
+        }
 
-	if err == sql.ErrNoRows {
-		duration = 120
-	} else if err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
+        req.ClientIP = strings.TrimSpace(req.ClientIP)
+        req.ClientMAC = strings.TrimSpace(req.ClientMAC)
 
-	if duration <= 0 {
-		duration = 120
-	}
+        if req.ClientIP != "" && net.ParseIP(req.ClientIP) == nil {
+                writeGuestJSON(w, http.StatusBadRequest, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": "IP client tidak valid",
+                })
+                return
+        }
 
-	now := time.Now().UTC()
-	end := now.Add(time.Duration(duration) * time.Minute)
+        var duration int
 
-	tx, err := h.DB.Begin()
-	if err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
-	defer tx.Rollback()
+        err = h.DB.QueryRow(`
+                SELECT guest_duration_minutes
+                FROM wifi_configs
+                WHERE network_type = 'GUEST'
+                  AND status = 'ACTIVE'
+                ORDER BY id DESC
+                LIMIT 1
+        `).Scan(&duration)
 
-	var guestID int64
-	err = tx.QueryRow(`
+        if err == sql.ErrNoRows {
+                duration = 120
+        } else if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": err.Error(),
+                })
+                return
+        }
+
+        if duration <= 0 {
+                duration = 120
+        }
+
+        now := time.Now().UTC()
+        end := now.Add(time.Duration(duration) * time.Minute)
+
+        tx, err := h.DB.Begin()
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": err.Error(),
+                })
+                return
+        }
+        defer tx.Rollback()
+
+        var guestID int64
+
+        err = tx.QueryRow(`
                 INSERT INTO guests
-                        (name, access_start, access_end, status)
+                        (name, guest_account_id, access_start, access_end, status)
                 VALUES
-                        ($1, $2, $3, 'ACTIVE')
+                        ($1, $2, $3, $4, 'ACTIVE')
                 RETURNING id
-        `, req.Name, now, end).Scan(&guestID)
+        `, guestName, guestAccountID, now, end).Scan(&guestID)
 
-	if err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": err.Error(),
+                })
+                return
+        }
 
-	var sessionID int64
-	err = tx.QueryRow(`
+        var sessionID int64
+
+        err = tx.QueryRow(`
                 INSERT INTO sessions
                         (guest_id, client_ip, client_mac, started_at, status)
                 VALUES
@@ -199,46 +370,40 @@ func (h *GuestHandler) StartSession(w http.ResponseWriter, r *http.Request) {
                 RETURNING id
         `, guestID, req.ClientIP, req.ClientMAC, now).Scan(&sessionID)
 
-	if err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
-	if err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
+        if err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": err.Error(),
+                })
+                return
+        }
 
-	if err := tx.Commit(); err != nil {
-		writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
-			"status":  "ERROR",
-			"message": err.Error(),
-		})
-		return
-	}
+        if err := tx.Commit(); err != nil {
+                writeGuestJSON(w, http.StatusInternalServerError, map[string]interface{}{
+                        "status":  "ERROR",
+                        "message": err.Error(),
+                })
+                return
+        }
 
-	writeGuestJSON(w, http.StatusCreated, map[string]interface{}{
-		"status":  "OK",
-		"message": "Guest berhasil mendapatkan sesi Wi-Fi",
-		"guest": map[string]interface{}{
-			"id":           guestID,
-			"name":         req.Name,
-			"access_start": now.Format(time.RFC3339),
-			"access_end":   end.Format(time.RFC3339),
-			"duration":     duration,
-		},
-		"session": map[string]interface{}{
-			"id":         sessionID,
-			"status":     "ONLINE",
-			"client_ip":  req.ClientIP,
-			"client_mac": req.ClientMAC,
-		},
-	})
+        writeGuestJSON(w, http.StatusCreated, map[string]interface{}{
+                "status":  "OK",
+                "message": "Guest berhasil mendapatkan sesi Wi-Fi",
+                "guest": map[string]interface{}{
+                        "id":           guestID,
+                        "name":         guestName,
+                        "account_id":   guestAccountID,
+                        "access_start": now.Format(time.RFC3339),
+                        "access_end":   end.Format(time.RFC3339),
+                        "duration":     duration,
+                },
+                "session": map[string]interface{}{
+                        "id":         sessionID,
+                        "status":     "ONLINE",
+                        "client_ip":  req.ClientIP,
+                        "client_mac": req.ClientMAC,
+                },
+        })
 }
 
 // GET /api/admin/guests

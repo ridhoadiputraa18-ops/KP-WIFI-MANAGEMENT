@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS members (
 CREATE TABLE IF NOT EXISTS guests (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
+    guest_account_id BIGINT REFERENCES guest_accounts(id) ON DELETE SET NULL,
     access_start TIMESTAMPTZ,
     access_end TIMESTAMPTZ,
     status TEXT NOT NULL DEFAULT 'PENDING',
@@ -64,6 +65,33 @@ CREATE TABLE IF NOT EXISTS guests (
 -- ==========================================
 -- DEVICES
 -- ==========================================
+CREATE TABLE IF NOT EXISTS guest_accounts (
+    id BIGSERIAL PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS guest_auth_sessions (
+    token TEXT PRIMARY KEY,
+    guest_account_id BIGINT NOT NULL
+        REFERENCES guest_accounts(id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_guest_accounts_username
+    ON guest_accounts(username);
+
+CREATE INDEX IF NOT EXISTS idx_guest_auth_sessions_guest
+    ON guest_auth_sessions(guest_account_id);
+
+CREATE INDEX IF NOT EXISTS idx_guest_auth_sessions_expiry
+    ON guest_auth_sessions(expires_at);
+
 CREATE TABLE IF NOT EXISTS devices (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
