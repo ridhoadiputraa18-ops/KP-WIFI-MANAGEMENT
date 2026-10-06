@@ -79,7 +79,9 @@ func main() {
 	auth := middleware.NewAuth(db)
 
 	http.Handle("/", http.FileServer(http.Dir("../frontend")))
-	http.Handle("/technician/", auth.RequireRole("TECHNICIAN", http.StripPrefix("/technician/", http.FileServer(http.Dir("../frontend/technician")))))
+        http.Handle("/admin/", auth.RequireRole("ADMIN", http.StripPrefix("/admin/", http.FileServer(http.Dir("../frontend/admin")))))
+        http.Handle("/member/", auth.RequireRole("MEMBER", http.StripPrefix("/member/", http.FileServer(http.Dir("../frontend/member")))))
+        http.Handle("/technician/", auth.RequireRole("TECHNICIAN", http.StripPrefix("/technician/", http.FileServer(http.Dir("../frontend/technician")))))
 
 	http.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
